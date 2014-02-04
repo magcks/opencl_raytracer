@@ -1,0 +1,77 @@
+#!/bin/bash
+
+## Get nSuperSamples
+superSamples=$(cat main.cc | egrep "opts\.nSuperSamples\s=\s[0-9]+" | cut -d '=' -f 2 | cut -d ";" -f 1);
+## Remove spaces
+superSamples=$(echo ${superSamples//[[:blank:]]/});
+## Get aoNumSamples
+aoNumSamples=$(cat main.cc | egrep "opts\.aoNumSamples\s=\s[0-9]+" | cut -d '=' -f 2 | cut -d ';' -f 1);
+## Remove spaces
+aoNumSamples=$(echo ${aoNumSamples//[[:blank:]]/});
+## Get shading
+shading=$(cat main.cc | egrep "opts\.shading\s=\s[0-9]+" | cut -d '=' -f 2 | cut -d ';' -f 1);
+## Remove spaces
+shading=$(echo ${shading//[[:blank:]]/});
+## Get ambientOcclusion
+ambientOcclusion=$(cat main.cc | egrep "opts\.ambientOcclusion\s=\s[0-9]+" | cut -d '=' -f 2 | cut -d ';' -f 1);
+## Remove spaces
+ambientOcclusion=$(echo ${ambientOcclusion//[[:blank:]]/});
+
+
+if [ "$shading" == "false" ]; then
+	shadingPrefix="[";
+	superSamples="$superSamples]";
+fi
+if [ "$ambientOcclusion" == "false" ]; then
+	aoPrefix="[";
+	aoNumSamples="$aoNumSamples]";
+fi
+
+dirName=$(date +"%b_%d");
+dirName=$(echo ${dirName,,})
+
+function createDirectory {
+	if [ -d $1 ]; then
+		## Directory exists, skip its creation
+		echo "Directory $1 already exists.";
+		return;
+	else
+		##  Directory doesn't exist, create it
+		echo "Creating directory $1/";
+		mkdir $1;
+	fi
+}
+
+## Check if argument is empty
+if [ -z $1 ]; then
+	echo -e "Syntax: ./render <INPUT_MESH.OFF>\nInstead, please use \033[1;32m./rs\033[0m to render sibenik and \033[1;32m./rb\033[0m to render a bunny.";
+	exit;
+fi
+## Check if argument exists
+if [ ! -f "$1" ]; then
+	echo "Error: File doesn't exist.";
+	exit;
+fi
+
+echo "Checking directory information...";
+createDirectory ./img/$dirName;
+echo "Recompiling sources...";
+$(make clean && make) &>/dev/null;
+fileName=$(basename $1);
+time=$(date +"%T")
+fileName=$(echo "./img/$dirName/$(echo $fileName | cut -d '.' -f 1)_${time}_${shadingPrefix}ss_${superSamples}_${aoPrefix}ao_${aoNumSamples}");
+./raytrace $1 $fileName 2>&1 | tee ./render_log;
+#renderTime=$(echo $(cat ./render_log | grep "ms" | cut -d ' ' -f 4) | cut -d ' ' -f 2 | cut -d 'm' -f 1);
+renderTime=$(echo $( cat ./render_log | grep "ms" | cut -d ' ' -f 4 | grep "ms" | cut -d 'm' -f 2))
+
+## Check if file could be created
+if [ ! -f $fileName ]; then
+        echo -e "\033[0;31mError: There was an error creating the image. Aborting.\033[0m";
+        exit;
+fi
+
+## Move the file to where it belongs
+mv $fileName ${fileName}_t_$renderTime.pgm;
+rm render_log;
+echo -e "\033[0;94m${fileName}_t_$renderTime.pgm \033[1;32mwas successfully created.\033[0m";
+echo -e $(echo "\033[0;94mMD5:\033[1;32m" $(md5sum ${fileName}_t_$renderTime.pgm | cut -d ' ' -f 1) "\033[0m");

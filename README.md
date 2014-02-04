@@ -1,4 +1,4 @@
-opencl_raytracer
-================
+OFF Raytracer
+=============
 
-An OpenCL raytracer that understands a simplified form of OFF models.
+An OpenCL/OpenMP raytracer that renders OFF models.

@@ -1,0 +1,231 @@
+<!doctype html>
+<html>
+	<head>
+		<title>GdI 3 — Renderer</title>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+		<link rel="stylesheet" type="text/css" href="./css/normalize.css"/>
+		<style type="text/css">
+			* {
+				font-family:		Ubuntu;
+				margin:			0;
+				padding:		0;
+			}
+			html, body {
+				background-color:	#32302F;
+				color:			#AAA;
+				width:			100%;
+				height:			100%;
+				
+			}
+			@font-face {
+				font-family:		'Ubuntu';
+				font-style:		normal;
+				font-weight:		700;
+				src:			local('Ubuntu Bold'), local('Ubuntu-Bold'), url(css/fonts/Ubuntu.woff) format('woff');
+			}
+			.darkStripe {
+				background-color:	#202020;
+				display:		table-cell;
+				width:			10000px;
+				height:			220px;
+				max-height:		220px;
+				vertical-align:		middle;
+				line-height:		0.9;
+				text-align:		center;
+				font-family:		Ubuntu;
+			}
+			p {
+				color:			#AAA;
+				line-height:		120%;
+			}
+			::selection {
+				background:		rgba(190, 140, 130, 0.55);
+			}
+			::-moz-selection {
+				background:		rgba(190, 140, 130, 0.55);
+			}
+			a:link, a:visited, a:focus {
+				color:			#AAF;
+				text-decoration:	none;
+			}
+			a:hover, a:active {
+				color:			#9F9;
+				text-decoration:	none;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="darkStripeWrapper" style="margin-top: 5px">
+			<div id="grayRect" style="height: 150px">
+				<div style="margin: 40px auto; text-align: center;">
+					<p style="font-size: 100px; white-space: nowrap; color: #EEE">Why is our renderer <em>so</em> fast?</p>
+				</div>
+			</div>
+			<div class="darkStripe">
+				<div style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 20px; padding-bottom: 10px">
+					<h1 style="color: #FFFF99">About our parallelism</h1>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 20px; padding-bottom: 10px">Our implementation is heavily based on <em style="color: #9999FF">OpenCL</em> to ensure that as much computation power as physically possible can be used (in parallel) to render a scene. As for the realization of <span style="font-variant:small-caps; color: #9999FF">Super Sampling (SS)</span>, we chose to supersample <em>invidual pixels</em> intead of individual <em>rows or columns</em>, as the corresponding code can be executed by the very same OpenCL <em>kernel</em> that also interects triangles and Bounding Volume Hierarchies for each pixel (see <span style="font-variant:small-caps; color: #9999FF">Embarrassingly Parallel</span>).</p>
+					
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 20px; padding-bottom: 10px">Our renderer also comes with an <em style="color: #9999FF">OpenMP</em> implementation, just in case that the latter didn't work out for you. This implementation doesn't seem as fast as the <em style="color: #9999FF">OpenCL</em> one, but we've also seen exceptions — so just give it a try.</p>
+					
+					<h1 style="color: #FFFF99">Surface Area Heuristic</h1>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 30px">Since the <span style="font-variant:small-caps; color: #9999FF">Median Cut</span> method was painfully slow and the <span style="font-variant:small-caps; color: #9999FF">Cut Longest Axis</span> method didn't seem to be the fastest of its kind either, we decided to implement the <span style="font-variant:small-caps; color: #9999FF">Surface Area Heuristic (SAH)</span> method referenced in an earlier lab. You can switch between these two methods by rewriting the corresponding line in <em style="color: #9999FF">main.cc</em> to either of the following options:<br/><br />
+					<div style="text-align: center; margin-bottom: 50px; padding: 10px 0; background: #111111">
+						<span style="color: #9999FF">BVH bvh(BVH::METHOD_CUT_LONGEST_AXIS);</span>
+					</div>
+					<div style="text-align: center">or</div>
+					<div style="text-align: center; margin-bottom: 50px; padding: 10px 0; background: #111111; margin-top: 50px">
+						<span style="color: #9999FF">BVH bvh(BVH::METHOD_SAH);</span>
+					</div>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 30px">Note that we do not support <span style="font-variant:small-caps; color: #9999FF">Median Cut</span> anymore (it didn't seem to have any advantages over any of the other methods whatsoever). By using <span style="font-variant:small-caps; color: #9999FF">Cut Longest Axis</span>, you will barely need any time to build a usable BVH (your rendering process will take a while, though). We recommend using the <span style="font-variant:small-caps; color: #9999FF">Surface Area Heuristic (SAH)</span> method which might take about 10 minutes on a decent computer in order to generate one of the most efficient binary trees that we could possibly traverse when raytracing the image.</p>
+					<h1 style="color: #FFFF99">Perfect Hemisphere Scattering</h1>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 20px; padding-bottom: 10px">One capital issue with the given renderer was, without any question, that in order to create rays with the provided <em style="color: #9999FF">hemisphere sampler</em>, you were forced to make use of pseudorandom floats to reach an acceptable degree of spherical scattering.</p>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">Not only that lots of computation time is repeatedly wasted — the randomization process will generate different results every time you render the scene. Also, we found that hemispheres created by this manner tend to be weighted towards the hemisphere's normal as can be seen in the following illustration.</p>
+					<img style="padding: 20px 0; width: 1337px; height: auto" src="img/bad_hemisphere.png"/>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">As for the resuling rasterization, your image may be quite noisy; especially if you choose your <span style="font-variant:small-caps; color: #9999FF">Ambient Occlusion (AO)</span> factor to be very small. The noise can be observed quite well on the wall or the pillars within the following <span style="font-variant:small-caps; color: #9999FF">Sibenik</span> scene (note the granular structure/pixelation; the count of AO rays is approximately <i>570</i>).</p>
+					<img style="padding: 0; padding-top: 20px; margin-bottom:0; padding-bottom: 0; width: 1337px; height: auto" src="img/noise_old_hemi.png"/>
+					<div style="margin-left:auto;margin-right:auto; text-align: right; borderspacing: 0; border-color: #AAA; box-shadow: 0 0 15px 5px #111; border-collapse: separate; font-size: 20px; color: #99FF99">
+					600 × 600 px — 800% zoom</div>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">We enhanced this by implementing an entirely new hemisphere sampler that distributes the rays more equitably. A 3D representation of the hemisphere that is created using our algorithm can be seen in the picture below. You can see that the hemisphere has a <em style="color: #9999FF">fair</em> distribution of rays around itself.</p>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">The minimum and maximum angles <em style="color: #9999FF">α<sub>min</sub></em> and <em style="color: #9999FF">α<sub>max</sub></em> between the hemisphere's bottom plane and the resulting ray can be adjusted (see <em style="color: #9999FF">opts.aoAlphaMin</em> and <em style="color: #9999FF">opts.aoAlphaMax</em> in <i style="color: #9999FF">main.cc</i>) to ensure a more realistic light scattering.</p>
+					<img style="padding: 20px 0; width: 1337px; height: auto" src="img/good_hemisphere.png"/>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">The algorithm we developed for creating this hemisphere will be more precise for higher counts of rings. These rings are <em style="color: #9999FF">evenly</em> distributed between <em style="color: #9999FF">α<sub>min</sub></em> and <em style="color: #9999FF">α<sub>max</sub></em> such that <em>lower rings will cast more rays and higher rings will cast less</em>. This is due to the fact that, in a hemisphere, lower rings will always have a greater radius than higher rings (and are thus <em>more important</em> to be considered when casting rays).</p>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">There are two possible configurations for the parameter <em style="color: #9999FF">opts.aoMethod</em><em>:</em></p><br/>
+					
+					<div style="text-align: center; margin-bottom: 50px; padding: 10px 0; background: #111111">
+						<span style="color: #9999FF">RayTracer::AO_METHOD_PERFECT</span>
+					</div>
+					<div style="text-align: center">or</div>
+					<div style="text-align: center; margin-bottom: 50px; padding: 10px 0; background: #111111; margin-top: 50px">
+						<span style="color: #9999FF">RayTracer::AO_METHOD_RANDOM</span>
+					</div>
+					<p>
+					If you choose to set it to <em style="color: #9999FF">RayTracer::AO_METHOD_PERFECT</em>, a <span style="font-variant:small-caps; color: #9999FF">Perfect Hemisphere</span> will be created (this is generally faster and more precise). You can also use <em style="color: #9999FF">RayTracer::AO_METHOD_RANDOM</em> which will create a randomized hemisphere, just in case you'd like to measure the difference.</p>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px"><a name="aoNumSamples"></a>Please beware that with <span style="font-variant:small-caps; color: #9999FF">Perfect Hemispheres</span> enabled, the exemplary option</p>
+					
+					<div style="text-align: center; margin-bottom: 50px; padding: 10px 0; background: #111111; margin-top: 50px">
+						<span style="color: #9999FF">opts.aoNumSamples = 15;</span>
+					</div>
+					<p>
+					
+					<p>changes its meaning and behavior. Now, instead of casting <em style="color: #9999FF">15 rays per hemisphere</em> (which is the default behavior for <em style="color: #9999FF">RayTracer::AO_METHOD_RANDOM</em>), your <span style="font-variant:small-caps; color: #9999FF">Perfect Hemisphere</span> will contain <em style="color: #9999FF">15 layers of rings</em> that will contain an enormous amount of rays (here: approximately <em style="color: #9999FF">570 rays for 15 rings</em>). When comparing this renderer to other renderers, please make sure that both cast an equal amount of rays (don't panic, we'll print the the amount of rays and circles for you when you use this option).</p>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px"> Needless to say, every ring casts the rays in multiple angles of <em style="color: #9999FF">θ</em> (with <em style="color: #9999FF">θ</em> being individual for every ring but equal within the same ring). Higher adjustments for the number of rings (<em style="color: #9999FF">aoNumSamples</em>) will generate astonishingly accurate hemispheres. The following image shows a hemisphere (<em>with</em> and <em>without</em> the corresponding rays) created with a ring count of <em>'only'</em> <em style="color: #9999FF">30 layers</em>.</p>
+					<img style="padding: 20px 0; width: 1337px; height: auto" src="img/hemi_30.png"/>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 10px">Doing this, the overall speed is dramatically enhanced: <em style="color: #9999FF">No more pseudorandomness</em>, but <em style="color: #9999FF">precise and incredibly fast</em> scattering granting an enormous level of fast <span style="font-variant:small-caps; color: #9999FF">AO</span>. This makes our renderer able to get better results in less time, as you can see in the picture below. The rendering options were the same as in the picture above (but with the new hemisphere sampler instead, using only 15 circles which approximately results in 570 rays).</p>
+					<img style="padding: 0; padding-top: 20px; width: 1337px; height: auto" src="img/noise_new_hemi.png"/>
+					<div style="margin-left:auto; margin-right:auto; text-align: right; borderspacing: 0; border-color: #AAA; box-shadow: 0 0 15px 5px #111; border-collapse: separate; font-size: 20px; color: #99FF99">
+					600 × 600 px — 800% zoom</div>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 30px">The <em style="color: #9999FF">noise artifacts</em> on the walls and pillars were removed and their surfaces' color bands appear a lot <em style="color: #9999FF">smoother</em> – on further inspection you will as well notice that now, shadows are cast more <em style="color: #9999FF">realistically</em> (individually compare the bottom left corner of the rightmost pillar, for instance).</p>
+
+					<h1 style="color: #FFFF99">Notes</h1>
+					<h2 style="color: #FFFF99; margin: 40px 0; font-size: 33px">Tested hardware/software</h2>
+					<table style="margin-left:auto;margin-right:auto; text-align: left; borderspacing: 0; border-color: #AAA; box-shadow: 0 0 15px 5px #111; border-collapse: separate;">
+						<tr>
+							<th style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; color: #9F9; text-align: center">Device</th>
+							<th style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; color: #9F9; text-align: center">Execution</th>
+							<th style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; color: #9F9; text-align: center">OS</th>
+							<th style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; color: #9F9; text-align: center">Works</th>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Intel(R) Core(TM) i5-3317U CPU @ 1.70 GHz</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenCL 1.2 LINUX - Intel(R) OpenCL</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Arch Linux</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; background: #99FF99"></td>
+						</tr>
+						<tr style="background: #282828">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Intel(R) Core(TM) i5-2500K CPU @ 3.30GHz</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenCL 1.2 LINUX - Intel(R) OpenCL</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Arch Linux</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 10px 25px 10px 15px; background: #99FF99"></td>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">AMD Phenom II X4 965 BE CPU @ 3.40 GHz</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenCL 1.2 LINUX - AMDAPP SDK OpenCL</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Arch Linux</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 10px 25px 10px 15px; background: #99FF99"></td>
+						</tr>
+						<tr style="background: #282828">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Nvidia GeForce GTX 650, Kepler GPU</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenCL 1.1 CUDA 4.2.1 - NVIDIA CUDA</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Ubuntu 12.04 LTS</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 10px 25px 10px 15px; background: #99FF99"></td>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenMP</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Ubuntu 12.04 LTS</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 10px 25px 10px 15px; background: #99FF99"></td>
+						</tr>
+						<tr style="background: #282828">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Intel(R) Atom(TM) CPU N270 @ 1.60GHz - ASUS Eee PC 1001HA</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenMP</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Arch Linux</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 10px 25px 10px 15px; background: #99FF99"></td>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Nvidia GeForce GTX 650, Kepler GPU, ASUS P8P67 EVO</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">OpenCL, might be a graphics driver issue</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: center">Arch Linux</td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 10px 25px 10px 15px; background: #FF9999"></td>
+						</tr>
+					</table>
+					
+					<h2 style="color: #FFFF99; margin: 40px 0; font-size: 33px">Bash scripts and name system</h2>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 30px">If you want to render <span style="font-variant:small-caps; color: #9999FF">Sibenik</span>, you can run <span style="color: #9999FF">./rs</span style="color: #9999FF"> (short for <span style="color: #9999FF">r</span>ender <span style="color: #9999FF">s</span>ibenik).<br/>
+					If you want to render <span style="font-variant:small-caps; color: #9999FF">Bunny</span>, you can run <span style="color: #9999FF">./rb</span> (short for <span style="color: #9999FF">r</span>ender <span style="color: #9999FF">b</span>unny).<br/><br/>
+					The results will automatically be saved in <i>./img/<span style="color: #9999FF">month</span>_<span style="color: #9999FF">day</span>/</i>. The files are named in the following manner:<br/><br/>
+					</p>
+					<div style="text-align: center; margin-bottom: 50px; padding: 10px 0; background: #111111">
+						<span style="color: #9999FF">meshName</span>_<span style="color: #9999FF">timeStamp</span>_ss_<span style="color: #9999FF">nSuperSamples</span>_ao_<span style="color: #9999FF">aoNumSamples</span>_t_<span style="color: #9999FF">renderTime</span>.pgm
+					</div>
+
+					<table style="margin-left:auto;margin-right:auto; text-align: left; borderspacing: 0; border-color: #AAA; box-shadow: 0 0 15px 5px #111; border-collapse: separate;">
+						<tr>
+							<th style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; color: #9F9; text-align: center">Tag</th>
+							<th style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; color: #9F9; text-align: center">Meaning</th>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">meshName</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">The name of the .off file. Will be "sibenik" for ./rs and "bunny" for "./rb"</td>
+						</tr>
+						<tr style="background: #282828">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">timeStamp</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">A 24-hour timestamp from when the rendering process finished, format: hh:mm:ss</td>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">nSuperSamples</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">The number of supersamples per pixel</td>
+						</tr>
+						<tr style="background: #282828">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">aoNumSamples</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">Please see <a href="#aoNumSamples">here</a></td>
+						</tr>
+						<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">renderTime</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">The time needed for the rendering process in milliseconds</td>
+						</tr>
+						<tr style="background: #282828">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">month</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">The first three lowercase letters of the month when you started the rendering process</td>
+						</tr>
+							<tr style="background: #393939">
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: right"><span style="color: #9999FF">day</span></td>
+							<td style="border-bottom: 1px solid #000; border-right: 1px solid #000; border-top: 1px solid #333; padding: 10px 25px 10px 15px; font-weight: 900; font-size: 20px; text-align: left">The day of the month when you started the rendering process as a two-digit number</td>
+						</tr>
+					</table>
+					
+					<h2 style="color: #FFFF99; margin: 40px 0; font-size: 33px">Caveats</h2>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 30px">When rendering an image, you might notice that the parameters <span style="color: #9999FF">WIDTH</span style="color: #9999FF"> and <span style="color: #9999FF">HEIGHT</span> seem to be off (at least that's what your terminal tells you). This is due to the fact that, instead of implementing a complex algorithm for <span style="font-variant:small-caps; color: #9999FF">Supersampling</span>, we decided to just render the image with higher virtual dimensions and then scaling it down to the dimensions you've requested (if you think about it, this is 100% equivalent to <span style="font-variant:small-caps; color: #9999FF">Supersampling</span>. This means that for <span style="color: #9999FF">WIDTH</span style="color: #9999FF"> and <span style="color: #9999FF">HEIGHT</span style="color: #9999FF">, we will always show you virtual dimensions, but the resulting picture will have the dimensions that you've specified in <span style="color: #9999FF">main.cc</span style="color: #9999FF">.
+					</p>
+
+					<h2 style="color: #FFFF99; margin: 40px 0; font-size: 33px">WebGL simulator</h2>
+					<p style="padding-top: 20px; font-size: 30px; width: 70%; margin-left: auto; margin-right:auto; text-align: justify; text-justify: newspaper; width: 1337px; padding-top: 10px; padding-bottom: 30px"> In case you want to test our WebGL-based simulator (used for the hemisphere screenshots that you can see above) yourself, you can view it at any of the two links that you can see below. The end of the link specifies a rotation vector for the centered mesh.
+						<ul style="line-height: 150%">
+							<li><a href="http://maxvonbuelow.de/share/vecs/?10,5,0">http://maxvonbuelow.de/share/vecs/?10,5,0</a></li>
+							<li><a href="http://kdex.de/vec/?10,5,0">http://kdex.de/vec/?10,5,0</a></li>
+						</ul>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
