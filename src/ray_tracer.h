@@ -29,21 +29,6 @@ class RayTracer {
 				char aoMethod;
 				int aoAlphaMin;
 				int aoAlphaMax;
-				std::string getMashineReadable() {
-					std::stringstream ss;
-					ss << "WIDTH " << this->width << std::endl;
-					ss << "HEIGHT " << this->height << std::endl;
-					ss << "FOCALLENGTH " << this->focalLength << std::endl;
-					ss << "NSUPERSAMPLES " << this->nSuperSamples << std::endl;
-					ss << "SHADING " << this->shading << std::endl;
-					ss << "AO " << this->ambientOcclusion << std::endl;
-					ss << "AO_MAXDISTANCE " << this->aoMaxDistance << std::endl;
-					ss << "AO_NUMSAMPLES " << this->aoNumSamples << std::endl;
-					ss << "AO_METHOD " << (unsigned int) this->aoMethod << std::endl;
-					ss << "AO_ALPHA_MIN " << this->aoAlphaMin << std::endl;
-					ss << "AO_ALPHA_MAX " << this->aoAlphaMax;
-					return ss.str();
-				}
 		};
 		static const char AO_METHOD_PERFECT = 0;
 		static const char AO_METHOD_RANDOM = 1;
