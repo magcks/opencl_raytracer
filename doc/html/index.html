@@ -104,52 +104,6 @@
 			</tr>
 		</tbody>
 	</table>
-	<h3>Bash scripts and name system</h3>
-	<p>If you want to render <span term>Sibenik</span>, you can run <span colored>./rs</span> (short for <span colored>r</span>ender <span colored>s</span>ibenik).<br/>
-	If you want to render <span term>Bunny</span>, you can run <span colored>./rb</span> (short for <span colored>r</span>ender <span colored>b</span>unny).<br/><br/>
-	The results will automatically be saved in <i>./img/<span colored>month</span>_<span colored>day</span>/</i>. The files are named in the following manner:<br/><br/>
-	</p>
-	<div code>
-		<span colored>name</span>_<span colored>time</span>_ss_<span colored>nSS</span>_ao_<span colored>nAO</span>_t_<span colored>rT</span>.pgm
-	</div>
-	<table aligned>
-		<thead>
-			<tr>
-				<th>Tag</th>
-				<th>Meaning</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><span colored>name</span></span></td>
-				<td>The name of the .off mesh. Will be "sibenik" for ./rs and "bunny" for "./rb"</td>
-			</tr>
-			<tr>
-				<td><span colored>time</span></td>
-				<td>A 24-hour timestamp from when the rendering process finished, format: hh:mm:ss</td>
-			</tr>
-			<tr>
-				<td><span colored>nSS</span></td>
-				<td>The number of supersamples per pixel</td>
-			</tr>
-			<tr>
-				<td><span colored>nAO</span></span></td>
-				<td>The <span colored>aoNumSamples</span> option as described <a href="#aoNumSamples">here</a>.</td>
-			</tr>
-			<tr>
-				<td><span colored>rT</span></td>
-				<td>The time needed for the rendering process in milliseconds</td>
-			</tr>
-			<tr>
-				<td><span colored>month</span></td>
-				<td>The first three lowercase letters of the month when you started the rendering process</td>
-			</tr>
-				<tr>
-				<td><span colored>day</span></td>
-				<td>The day of the month when you started the rendering process as a two-digit number</td>
-			</tr>
-		</tbody>
-	</table>
 	<h3>Caveats</h3>
 	<p>When rendering an image, you might notice that the parameters <span colored>WIDTH</span> and <span colored>HEIGHT</span> seem to be off (at least that's what your terminal tells you). This is due to the fact that, instead of implementing a complex algorithm for <span term>Supersampling</span>, we decided to just render the image with higher virtual dimensions and then scaling it down to the dimensions you've requested (if you think about it, this is 100% equivalent to <span term>Supersampling</span>. This means that for <span colored>WIDTH</span> and <span colored>HEIGHT</span>, we will always show you virtual dimensions, but the resulting picture will have the dimensions that you've specified in <span colored>main.cc</span>.
 	</p>
