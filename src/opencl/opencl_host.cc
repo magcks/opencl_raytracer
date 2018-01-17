@@ -166,9 +166,18 @@ void OpenCLHost::prepare(std::vector<cl_uint> &faces, std::vector<cl_uint> &node
 }
 
 bool OpenCLHost::operator()() {
-	cl::KernelFunctor intersect(cl::Kernel(this->program, "intersect"), this->queue, cl::NullRange, cl::NDRange(this->rt.totalWidth, this->rt.totalHeight), cl::NullRange);
-	intersect(this->facesBuffer, this->nodesBuffer, this->aabbsBuffer, this->verticesBuffer, this->vnormalsBuffer, this->imageBuffer);
-	check(intersect.getError());
+	cl::Kernel kernel(this->program, "intersect");
+	kernel.setArg(0, facesBuffer);
+	kernel.setArg(1, nodesBuffer);
+	kernel.setArg(2, aabbsBuffer);
+	kernel.setArg(3, verticesBuffer);
+	kernel.setArg(4, vnormalsBuffer);
+	kernel.setArg(5, imageBuffer);
+	queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rt.totalWidth, rt.totalHeight));
+
+// 	cl::KernelFunctor intersect(cl::Kernel(this->program, "intersect"), this->queue, cl::NullRange, cl::NDRange(this->rt.totalWidth, this->rt.totalHeight), cl::NullRange);
+// 	intersect(this->facesBuffer, this->nodesBuffer, this->aabbsBuffer, this->verticesBuffer, this->vnormalsBuffer, this->imageBuffer);
+// 	check(intersect.getError());
 	check(this->queue.finish());
 
 	return true; // TODO
@@ -181,13 +190,10 @@ void OpenCLHost::loadMem(cl_float * image) {
 	}
 
 	cl::size_t<3> origin;
-	origin.push_back(0);
-	origin.push_back(0);
-	origin.push_back(0);
 	cl::size_t<3> region;
-	region.push_back(this->rt.totalWidth);
-	region.push_back(this->rt.totalHeight);
-	region.push_back(1);
+	region[0] = rt.totalWidth;
+	region[1] = rt.totalHeight;
+	region[2] = 1;
 	check(this->queue.enqueueReadImage(this->imageBuffer, CL_TRUE, origin, region, 0, 0, image, NULL, NULL));
 	check(this->queue.finish());
 }

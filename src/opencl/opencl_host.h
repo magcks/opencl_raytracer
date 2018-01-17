@@ -2,7 +2,7 @@
 #ifndef OPENCL_HOST_H
 #define OPENCL_HOST_H
 
-#include "cl.hpp"
+#include "CL/cl.hpp"
 #include "color.h"
 #include "compiler_options.h"
 #include <iostream>
