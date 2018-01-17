@@ -45,11 +45,11 @@ inline float getSurfaceArea(AABB &bb) {
  */
 void BVH::cutFaces(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb) {
 	switch (this->method) {
-	case 0:
+	case METHOD_CUT_LONGEST_AXIS:
 		this->cutFacesLongestAxis(mesh, faceIDs, leftIDs, rightIDs, bb);
 		break;
 
-	case 2:
+	case METHOD_SAH:
 		this->cutFacesSAH(mesh, faceIDs, leftIDs, rightIDs, bb);
 		break;
 	}

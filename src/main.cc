@@ -127,6 +127,7 @@ int main(int argc, const char *argv[]) {
 	opts.aoMethod = RayTracer::AO_METHOD_PERFECT; // IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of x. This will result in a huge amount of rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres. See README.
 	opts.aoAlphaMin = 4; // degrees!!!
 	opts.aoAlphaMax = 90; // you shouldn't change this
+	opts.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH
 
 	std::string inMesh(config.argument["INPUT"].as<std::string>());
 	std::string outImage(config.argument["OUTPUT"].as<std::string>());
@@ -158,7 +159,7 @@ int main(int argc, const char *argv[]) {
 
 	// Build BVH.
 	std::cout << Color::yellow << "Building BVH..." << Color::reset << std::flush;
-	BVH bvh(BVH::METHOD_CUT_LONGEST_AXIS);
+	BVH bvh(opts.bvhMethod);
 	{
 		Timer timer;
 		bvh.buildBVH(mesh);
@@ -166,7 +167,7 @@ int main(int argc, const char *argv[]) {
 	}
 
 	std::cout << std::endl;
-        std::cout << Color::blue << "<- " << Color::red << "DEVICE SECTION" << Color::blue << " ->" << std::endl;
+	std::cout << Color::blue << "<- " << Color::red << "DEVICE SECTION" << Color::blue << " ->" << std::endl;
 
 	OpenCLHost::printInfo();
 
@@ -206,7 +207,7 @@ int main(int argc, const char *argv[]) {
 	}
 
 	std::cout << std::endl;
-        std::cout << Color::blue << "<- " << Color::red << "RENDERING SECTION" << Color::blue << " ->" << std::endl;
+	std::cout << Color::blue << "<- " << Color::red << "RENDERING SECTION" << Color::blue << " ->" << std::endl;
 	std::cout << Color::yellow << "Rendering image..." << Color::reset << std::flush;
 
 	// Execute
@@ -222,27 +223,26 @@ int main(int argc, const char *argv[]) {
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
 
-	float * tmp = new float[rt.totalWidth * rt.totalHeight];
+	std::vector<float> tmp(rt.totalWidth * rt.totalHeight);
 	std::cout << std::endl;
 
 	// Load memory
 	{
 		Timer timer;
 		std::cout << Color::yellow << "Loading memory... " << Color::reset;
-		host.loadMem(tmp);
+		host.loadMem(tmp.data());
 
 		std::size_t elapsed = timer.get_elapsed();
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
 
 	// Resize
-	unsigned char * image = new unsigned char[opts.width * opts.height];
+	std::vector<unsigned char> image(opts.width * opts.height);
 	{
 		Timer timer;
 		std::cout << Color::yellow << "Resizing image on host... " << Color::reset;
 
-		rt.resize(tmp, image);
-		delete tmp;
+		rt.resize(tmp.data(), image.data());
 
 		std::size_t elapsed = timer.get_elapsed();
 		totalTime += elapsed;
@@ -250,11 +250,6 @@ int main(int argc, const char *argv[]) {
 	}
 
 	std::cout << Color::yellow << "Total time (without loading memory and building the BVH): " << Color::green << totalTime << "ms" << Color::reset << std::endl;
-
-// 	std::ofstream infos("./infos.txt");
-// 	infos << opts.getMashineReadable() << std::endl;
-// 	infos << "TIME " << totalTime << std::endl;
-// 	infos.close();
 
 	// Write output image.
 	std::ofstream out(outImage.c_str());
@@ -265,10 +260,8 @@ int main(int argc, const char *argv[]) {
 	}
 
 	out << "P5 " << opts.width << " " << opts.height << " 255\n";
-	out.write(reinterpret_cast<char const *>(image), opts.width * opts.height);
+	out.write((const char*)image.data(), opts.width * opts.height);
 	out.close();
-
-	delete image;
 
 	return 0;
 }

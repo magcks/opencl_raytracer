@@ -7,8 +7,7 @@
 // Bounding Volume Hierarchy (BVH) Interface.
 class BVH {
 	public:
-		static const char METHOD_CUT_LONGEST_AXIS = 0;
-		static const char METHOD_SAH = 2;
+		enum Method { METHOD_CUT_LONGEST_AXIS = 0, METHOD_SAH = 2 };
 		BVH(void);
 		BVH(char method);
 		~BVH(void);

@@ -1,5 +1,10 @@
 // #pragma OPENCL EXTENSION cl_amd_printf : enable
 
+#ifndef M_PI
+#define M_PI             3.14159265358979323846
+#define M_PI_2           1.57079632679489661923
+#endif
+
 typedef struct Mesh {
 	const __global float4 * vertices;
 	const __global uint * faces;
@@ -240,7 +245,7 @@ inline float4 hemisphere_sampler_sample(HemisphereSampler * hemi) {
 	float xi1 = random_float(&hemi->ran);
 	float xi2 = random_float(&hemi->ran);
 
-	float theta = acos(sqrt(1.0 - xi1));
+	float theta = acos(sqrt(1.0f - xi1));
 	float phi = 2.0 * xi2; // removed PI here and changed sin to sinpi and cos to cospi
 
 	float xs = sin(theta) * cospi(phi);

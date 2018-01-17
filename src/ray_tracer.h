@@ -1,8 +1,8 @@
 #pragma once
 #include <cmath>
-#include <CL/cl.h>
 #include <string>
 #include <sstream>
+#include "bvh.h"
 class RayTracer {
 	public:
 		// Structure with basic options for raytracer
@@ -16,22 +16,21 @@ class RayTracer {
 		//                      Should be about 10% of the max scene dimension
 		// - aoNumSamples     : Number of samples for each ambient occlusion
 		//                      evaluation
-		class Options {
-			public:
-				unsigned int width;
-				unsigned int height;
-				float focalLength;
-				unsigned int nSuperSamples;
-				bool shading;
-				bool ambientOcclusion;
-				float aoMaxDistance;
-				unsigned int aoNumSamples;
-				char aoMethod;
-				int aoAlphaMin;
-				int aoAlphaMax;
+		enum Method { AO_METHOD_PERFECT, AO_METHOD_RANDOM };
+		struct Options {
+			unsigned int width;
+			unsigned int height;
+			float focalLength;
+			unsigned int nSuperSamples;
+			bool shading;
+			bool ambientOcclusion;
+			float aoMaxDistance;
+			unsigned int aoNumSamples;
+			Method aoMethod;
+			int aoAlphaMin;
+			int aoAlphaMax;
+			BVH::Method bvhMethod;
 		};
-		static const char AO_METHOD_PERFECT = 0;
-		static const char AO_METHOD_RANDOM = 1;
 		RayTracer(Options _opts) :
 			opts(_opts),
 			totalWidth(_opts.width * (unsigned int) sqrt(_opts.nSuperSamples)),
