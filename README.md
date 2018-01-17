@@ -13,6 +13,6 @@ make -j
 
 ## License
 Our program is licensed under the GPL v3 license included as LICENSE.txt file. The authors of this program are:
-* Max von Buelow (@magcks)
 * kdex (@kdex)
+* Max von Buelow (@magcks)
 * Graphics, Capture and Massively Parallel Computing, TU Darmstadt (https://www.gcc.tu-darmstadt.de)
