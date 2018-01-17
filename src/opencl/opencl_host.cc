@@ -181,9 +181,9 @@ bool OpenCLHost::operator()() {
 
 void OpenCLHost::loadMem(cl_float * image) {
 	// set image grey (debugging)
-	for (std::size_t i = 0; i < this->rt.totalWidth * this->rt.totalHeight; ++i) {
-		image[i] = 0.7f;
-	}
+// 	for (std::size_t i = 0; i < this->rt.totalWidth * this->rt.totalHeight; ++i) {
+// 		image[i] = 0.7f;
+// 	}
 
 	cl::size_t<3> origin;
 	cl::size_t<3> region;
