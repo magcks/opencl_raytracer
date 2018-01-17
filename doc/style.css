@@ -1,0 +1,125 @@
+@import url("https://fonts.googleapis.com/css?family=Ubuntu&subset=greek");
+:root {
+	--text-color: #aaa;
+	--h1-color: #eee;
+	--h2-color: #ffff99;
+	--h3-color: var(--h1-color);
+	--highlight-color: #9999ff;
+	--caption-color: #99ff99;
+	--light-background-color: #32302f;
+	--regular-background-color: #202020;
+	--dark-background-color: #111111;
+	--positive-color: var(--caption-color);
+	--negative-color: #ff9999;
+}
+* {
+	font-family: Ubuntu;
+	font-weight: 900;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+[colored] {
+	color: var(--highlight-color);
+}
+[code] {
+	color: var(--highlight-color);
+	background-color: var(--dark-background-color);
+	text-align: center;
+	padding: 0.5rem 0;
+	margin: 1rem 0;
+}
+[term] {
+	color: var(--highlight-color);
+	font-variant: small-caps;
+}
+[illustration] {
+	margin-bottom: 1rem;
+}
+[caption] {
+	text-align: right;
+	background-color: var(--light-background-color);
+	color: var(--caption-color);
+	padding: 0.5rem;
+}
+table {
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+table tbody tr:nth-child(odd) {
+	background-color: #393939;
+}
+table tbody tr:nth-child(even) {
+	background-color: #282828;
+}
+table th, table td {
+	border-right: 1px solid black;
+	padding: 1rem 1rem;
+	text-align: center;
+}
+table[aligned] td:first-of-type {
+	text-align: right;
+}
+table[aligned] td:nth-of-type(2) {
+	text-align: left;
+}
+table th {
+	color: var(--caption-color);
+}
+table td[works] {
+	background-color: var(--positive-color);
+}
+table td[broken] {
+	background-color: var(--negative-color);
+}
+table td[works], table td[broken] {
+	border-bottom: 1px solid black;
+}
+img {
+	width: 100%;
+	display: block;
+}
+h1, h2, h3 {
+	line-height: 3;
+}
+h1 {
+	color: var(--h1-color);
+}
+h2 {
+	color: var(--h2-color);
+}
+h3 {
+	color: var(--h3-color);
+}
+html, body {
+	color: var(--text-color);
+	width: 100%;
+	height: 100%;
+	background-color: var(--regular-background-color);
+}
+[wrapper] {
+	margin: 0 auto;
+	width: 100%;
+}
+@media screen and (min-width: 800px) {
+	[wrapper] {
+		width: 800px;
+	}
+}
+p {
+	line-height: 1.5;
+	margin-bottom: 1rem;
+	text-align: justify;
+}
+::selection {
+	background-color: rgba(190, 140, 130, 0.55);
+}
+a {
+	text-decoration: none;
+}
+a:link, a:visited, a:focus {
+	color: orange;
+}
+a:hover, a:active {
+	color: var(--caption-color);
+}

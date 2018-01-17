@@ -1,0 +1,156 @@
+<!doctype html>
+<title>GdI 3 — Renderer</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+<div wrapper>
+	<h1>Why is our renderer <em>so</em> fast?</h1>
+	<h2>About our parallelism</h2>
+	<p>Our implementation is heavily based on <span colored>OpenCL</span> to ensure that as much computation power as physically possible can be used in parallel to render a scene. As for the realization of <span term>Super Sampling (SS)</span>, we chose to supersample <em>invidual pixels</em> intead of individual <em>rows or columns</em>, as the corresponding code can be executed by the very same OpenCL <em>kernel</em> that also interects triangles and Bounding Volume Hierarchies for each pixel (see <span term>Embarrassingly Parallel</span>).</p>
+	<p>Our renderer also comes with an <em colored>OpenMP</em> implementation, just in case that the latter didn't work out for you. This implementation doesn't seem as fast as the <em colored>OpenCL</em> one, but we've also seen exceptions — so just give it a try.</p>
+	<h2>Surface Area Heuristic</h2>
+	<p>Since the <span term>Median Cut</span> method was painfully slow and the <span term>Cut Longest Axis</span> method didn't seem to be the fastest of its kind either, we decided to implement the <span term>Surface Area Heuristic (SAH)</span> method referenced in an earlier lab. You can switch between these two methods by rewriting the corresponding line in <em colored>main.cc</em> to either of the following options:<br/><br />
+	<div code>BVH bvh(BVH::METHOD_CUT_LONGEST_AXIS);</div>
+	or
+	<div code>BVH bvh(BVH::METHOD_SAH);</div>
+	<p>Note that we do not support <span term>Median Cut</span> anymore (it didn't seem to have any advantages over any of the other methods whatsoever). By using <span term>Cut Longest Axis</span>, you will barely need any time to build a usable BVH (your rendering process will take a while, though). We recommend using the <span term>Surface Area Heuristic (SAH)</span> method which might take about 10 minutes on a decent computer in order to generate one of the most efficient binary trees that we could possibly traverse when raytracing the image.</p>
+	<h2>Perfect Hemisphere Scattering</h2>
+	<p>One capital issue with the given renderer was, without any question, that in order to create rays with the provided <em colored>hemisphere sampler</em>, you were forced to make use of pseudorandom floats to reach an acceptable degree of spherical scattering.</p>
+	<p>Not only that lots of computation time is repeatedly wasted — the randomization process will generate different results every time you render the scene. Also, we found that hemispheres created by this manner tend to be weighted towards the hemisphere's normal as can be seen in the following illustration.</p>
+	<div illustration>
+		<img src="img/bad-hemisphere.png">
+	</div>
+	<p>As for the resuling rasterization, your image may be quite noisy; especially if you choose your <span term>Ambient Occlusion (AO)</span> factor to be very small. The noise can be observed quite well on the wall or the pillars within the following <span term>Sibenik</span> scene (note the granular structure/pixelation; the count of AO rays is approximately <i>570</i>).</p>
+	<div illustration>
+		<img src="img/noise-old-hemisphere.png">
+		<div caption>600 × 600 px — 800% zoom</div>
+	</div>
+	<p>We enhanced this by implementing an entirely new hemisphere sampler that distributes the rays more equitably. A 3D representation of the hemisphere that is created using our algorithm can be seen in the picture below. You can see that the hemisphere has a <em colored>fair</em> distribution of rays around itself.</p>
+	<p>The minimum and maximum angles <em colored>α<sub>min</sub></em> and <em colored>α<sub>max</sub></em> between the hemisphere's bottom plane and the resulting ray can be adjusted (see <em colored>opts.aoAlphaMin</em> and <em colored>opts.aoAlphaMax</em> in <i colored>main.cc</i>) to ensure a more realistic light scattering.</p>
+	<div illustration>
+		<img src="img/good-hemisphere.png">
+	</div>
+	<p>The algorithm we developed for creating this hemisphere will be more precise for higher counts of rings. These rings are <em colored>evenly</em> distributed between <em colored>α<sub>min</sub></em> and <em colored>α<sub>max</sub></em> such that <em>lower rings will cast more rays and higher rings will cast less</em>. This is due to the fact that, in a hemisphere, lower rings will always have a greater radius than higher rings (and are thus <em>more important</em> to be considered when casting rays).</p>
+	<p>There are two possible configurations for the parameter <em colored>opts.aoMethod</em><em>:</em></p><br/>
+	<div code>RayTracer::AO_METHOD_PERFECT</div>
+	or
+	<div code>RayTracer::AO_METHOD_RANDOM</div>
+	<p>If you choose to set it to <em colored>RayTracer::AO_METHOD_PERFECT</em>, a <span term>Perfect Hemisphere</span> will be created (this is generally faster and more precise). You can also use <em colored>RayTracer::AO_METHOD_RANDOM</em> which will create a randomized hemisphere, just in case you'd like to measure the difference.</p>
+	<p><a name="aoNumSamples"></a>Please beware that with <span term>Perfect Hemispheres</span> enabled, the exemplary option</p>
+	<div code>opts.aoNumSamples = 15;</div>
+	<p>changes its meaning and behavior. Now, instead of casting <em colored>15 rays per hemisphere</em> (which is the default behavior for <em colored>RayTracer::AO_METHOD_RANDOM</em>), your <span term>Perfect Hemisphere</span> will contain <em colored>15 layers of rings</em> that will contain an enormous amount of rays (here: approximately <em colored>570 rays for 15 rings</em>). When comparing this renderer to other renderers, please make sure that both cast an equal amount of rays (don't panic, we'll print the the amount of rays and circles for you when you use this option).</p>
+	<p> Needless to say, every ring casts the rays in multiple angles of <em colored>θ</em> (with <em colored>θ</em> being individual for every ring but equal within the same ring). Higher adjustments for the number of rings (<em colored>aoNumSamples</em>) will generate astonishingly accurate hemispheres. The following image shows a hemisphere (<em>with</em> and <em>without</em> the corresponding rays) created with a ring count of <em>'only'</em> <em colored>30 layers</em>.</p>
+	<div illustration>
+		<img src="img/hemisphere-30.png">
+	</div>
+	<p>Doing this, the overall speed is dramatically enhanced: <em colored>No more pseudorandomness</em>, but <em colored>precise and incredibly fast</em> scattering granting an enormous level of fast <span term>AO</span>. This makes our renderer able to get better results in less time, as you can see in the picture below. The rendering options were the same as in the picture above (but with the new hemisphere sampler instead, using only 15 circles which approximately results in 570 rays).</p>
+	<div illustration>
+		<img src="img/noise-new-hemisphere.png">
+		<div caption>600 × 600 px — 800% zoom</div>
+	</div>
+	<p>The <em colored>noise artifacts</em> on the walls and pillars were removed and their surfaces' color bands appear a lot <em colored>smoother</em> – on further inspection you will as well notice that now, shadows are cast more <em colored>realistically</em> (individually compare the bottom left corner of the rightmost pillar, for instance).</p>
+	<h2>Notes</h2>
+	<h3>Tested hardware/software</h3>
+	<table>
+		<thead>
+			<tr>
+				<th>Device</th>
+				<th>Execution</th>
+				<th>OS</th>
+				<th>Works</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>Intel(R) Core(TM) i5-3317U CPU @ 1.70 GHz</td>
+				<td>OpenCL 1.2 LINUX - Intel(R) OpenCL</td>
+				<td>Arch Linux</td>
+				<td works></td>
+			</tr>
+			<tr>
+				<td>Intel(R) Core(TM) i5-2500K CPU @ 3.30GHz</td>
+				<td>OpenCL 1.2 LINUX - Intel(R) OpenCL</td>
+				<td>Arch Linux</td>
+				<td works></td>
+			</tr>
+			<tr>
+				<td>AMD Phenom II X4 965 BE CPU @ 3.40 GHz</td>
+				<td>OpenCL 1.2 LINUX - AMDAPP SDK OpenCL</td>
+				<td>Arch Linux</td>
+				<td works></td>
+			</tr>
+			<tr>
+				<td>Nvidia GeForce GTX 650, Kepler GPU</td>
+				<td>OpenCL 1.1 CUDA 4.2.1 - NVIDIA CUDA</td>
+				<td>Ubuntu 12.04 LTS</td>
+				<td works></td>
+			</tr>
+			<tr>
+				<td>Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz</td>
+				<td>OpenMP</td>
+				<td>Ubuntu 12.04 LTS</td>
+				<td works></td>
+			</tr>
+			<tr>
+				<td>Intel(R) Atom(TM) CPU N270 @ 1.60GHz - ASUS Eee PC 1001HA</td>
+				<td>OpenMP</td>
+				<td>Arch Linux</td>
+				<td works></td>
+			</tr>
+			<tr>
+				<td>Nvidia GeForce GTX 650, Kepler GPU, ASUS P8P67 EVO</td>
+				<td>OpenCL, might be a graphics driver issue</td>
+				<td>Arch Linux</td>
+				<td broken></td>
+			</tr>
+		</tbody>
+	</table>
+	<h3>Bash scripts and name system</h3>
+	<p>If you want to render <span term>Sibenik</span>, you can run <span colored>./rs</span> (short for <span colored>r</span>ender <span colored>s</span>ibenik).<br/>
+	If you want to render <span term>Bunny</span>, you can run <span colored>./rb</span> (short for <span colored>r</span>ender <span colored>b</span>unny).<br/><br/>
+	The results will automatically be saved in <i>./img/<span colored>month</span>_<span colored>day</span>/</i>. The files are named in the following manner:<br/><br/>
+	</p>
+	<div code>
+		<span colored>name</span>_<span colored>time</span>_ss_<span colored>nSS</span>_ao_<span colored>nAO</span>_t_<span colored>rT</span>.pgm
+	</div>
+	<table aligned>
+		<thead>
+			<tr>
+				<th>Tag</th>
+				<th>Meaning</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><span colored>name</span></span></td>
+				<td>The name of the .off mesh. Will be "sibenik" for ./rs and "bunny" for "./rb"</td>
+			</tr>
+			<tr>
+				<td><span colored>time</span></td>
+				<td>A 24-hour timestamp from when the rendering process finished, format: hh:mm:ss</td>
+			</tr>
+			<tr>
+				<td><span colored>nSS</span></td>
+				<td>The number of supersamples per pixel</td>
+			</tr>
+			<tr>
+				<td><span colored>nAO</span></span></td>
+				<td>The <span colored>aoNumSamples</span> option as described <a href="#aoNumSamples">here</a>.</td>
+			</tr>
+			<tr>
+				<td><span colored>rT</span></td>
+				<td>The time needed for the rendering process in milliseconds</td>
+			</tr>
+			<tr>
+				<td><span colored>month</span></td>
+				<td>The first three lowercase letters of the month when you started the rendering process</td>
+			</tr>
+				<tr>
+				<td><span colored>day</span></td>
+				<td>The day of the month when you started the rendering process as a two-digit number</td>
+			</tr>
+		</tbody>
+	</table>
+	<h3>Caveats</h3>
+	<p>When rendering an image, you might notice that the parameters <span colored>WIDTH</span> and <span colored>HEIGHT</span> seem to be off (at least that's what your terminal tells you). This is due to the fact that, instead of implementing a complex algorithm for <span term>Supersampling</span>, we decided to just render the image with higher virtual dimensions and then scaling it down to the dimensions you've requested (if you think about it, this is 100% equivalent to <span term>Supersampling</span>. This means that for <span colored>WIDTH</span> and <span colored>HEIGHT</span>, we will always show you virtual dimensions, but the resulting picture will have the dimensions that you've specified in <span colored>main.cc</span>.
+	</p>
+</div>
