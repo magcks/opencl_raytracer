@@ -101,18 +101,14 @@ void OpenCLHost::prepare(std::vector<cl_uint> &faces, std::vector<cl_uint> &node
 	cl::Program::Sources sources;
 
 	std::cout << Color::blue << "<- " << Color::red << "OPENCL LOG SECTION" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Loading kernel source file..." << std::endl;
-	std::fstream input("intersect_kernel.cl");
-	std::stringstream kernelSourceSs;
-	std::string line;
+	std::cout << Color::yellow << "Loading kernel source file " << INTERSECT_KERNEL_CL << "..." << std::endl;
+	std::ifstream input(INTERSECT_KERNEL_CL, std::ios_base::binary);
+	input.seekg(0, std::ios_base::end);
+	std::vector<char> kernel_src(input.tellg());
+	input.seekg(0, std::ios_base::beg);
+	input.read(kernel_src.data(), kernel_src.size());
 
-	while (std::getline(input, line))
-		kernelSourceSs << line << std::endl;
-
-	input.close();
-	std::string kernelSource = kernelSourceSs.str();
-
-	sources.push_back(std::pair<const char *, size_t>(kernelSource.c_str(), kernelSource.length()));
+	sources.push_back(std::pair<const char *, size_t>(kernel_src.data(), kernel_src.size()));
 
 	// kernel parameters
 	CompilerOptions co;

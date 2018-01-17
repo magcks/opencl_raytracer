@@ -1,6 +1,5 @@
 // #pragma OPENCL EXTENSION cl_amd_printf : enable
 
-
 typedef struct Mesh {
 	const __global float4 * vertices;
 	const __global uint * faces;
