@@ -94,7 +94,6 @@ void OpenCLHost::prepare(std::vector<uint32_t> &faces, std::vector<uint32_t> &no
 
 	std::vector<cl::Device> devices;
 	devices.push_back(device);
-// 		devices.push_back(allDevices[1]);
 
 	cl::Context context(devices);
 
@@ -130,7 +129,7 @@ void OpenCLHost::prepare(std::vector<uint32_t> &faces, std::vector<uint32_t> &no
 
 	std::cout << "Compiling kernel..." << std::endl;
 	this->program = cl::Program(context, sources);
-	err = this->program.build(devices, options.c_str(), NULL, NULL);
+	err = this->program.build(devices, options.c_str());
 
 	std::cout << "Build log: " << std::endl << this->program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl << std::endl;
 
@@ -151,18 +150,23 @@ void OpenCLHost::prepare(std::vector<uint32_t> &faces, std::vector<uint32_t> &no
 	this->aabbsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	aabbs.size() * sizeof(Vec3f));
 	this->verticesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	vertices.size() * sizeof(Vec3f));
 	this->vnormalsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	vnormals.size() * sizeof(Vec3f));
-	this->imageBuffer = cl::Image2D(context, CL_MEM_WRITE_ONLY,	cl::ImageFormat(CL_INTENSITY, CL_FLOAT), this->rt.totalWidth, this->rt.totalHeight, 0, NULL, NULL);
-// 	this->imageBuffer = cl::Buffer(context, CL_MEM_WRITE_ONLY,	this->rt.totalWidth * this->rt.totalHeight * sizeof(uint8_t)); // TODO: INFO: This is READ_WRITE, not WRITE_ONLY!
+// 	this->imageBuffer = cl::Image2D(context, CL_MEM_WRITE_ONLY,	cl::ImageFormat(CL_INTENSITY, CL_FLOAT), this->rt.totalWidth, this->rt.totalHeight, 0, NULL, NULL);
+	this->imageBuffer = cl::Buffer(context, CL_MEM_WRITE_ONLY, this->rt.totalWidth * this->rt.totalHeight * sizeof(float)); // TODO: INFO: This is READ_WRITE, not WRITE_ONLY!
 
 	this->queue = cl::CommandQueue(context, device);
 
 	// Write data to GPU
-	check(this->queue.enqueueWriteBuffer(this->facesBuffer, CL_TRUE, 0,	faces.size() * sizeof(uint32_t),		&(faces[0])));
-	check(this->queue.enqueueWriteBuffer(this->nodesBuffer, CL_TRUE, 0,	nodes.size() * sizeof(uint32_t),		&(nodes[0])));
-	check(this->queue.enqueueWriteBuffer(this->aabbsBuffer, CL_TRUE, 0,	aabbs.size() * sizeof(Vec3f),		&(aabbs[0])));
-	check(this->queue.enqueueWriteBuffer(this->verticesBuffer, CL_TRUE, 0,	vertices.size() * sizeof(Vec3f),	&(vertices[0])));
-	check(this->queue.enqueueWriteBuffer(this->vnormalsBuffer, CL_TRUE, 0,	vnormals.size() * sizeof(Vec3f),	&(vnormals[0])));
+	check(this->queue.enqueueWriteBuffer(this->facesBuffer, CL_TRUE, 0,    faces.size() * sizeof(uint32_t),  &(faces[0])));
+	check(this->queue.enqueueWriteBuffer(this->nodesBuffer, CL_TRUE, 0,    nodes.size() * sizeof(uint32_t),  &(nodes[0])));
+	check(this->queue.enqueueWriteBuffer(this->aabbsBuffer, CL_TRUE, 0,    aabbs.size() * sizeof(Vec3f),     &(aabbs[0])));
+	check(this->queue.enqueueWriteBuffer(this->verticesBuffer, CL_TRUE, 0, vertices.size() * sizeof(Vec3f),  &(vertices[0])));
+	check(this->queue.enqueueWriteBuffer(this->vnormalsBuffer, CL_TRUE, 0, vnormals.size() * sizeof(Vec3f),  &(vnormals[0])));
 	check(this->queue.finish());
+}
+
+inline uint32_t div_up(uint32_t n, uint32_t d)
+{
+	return (n + d - 1) / d;
 }
 
 bool OpenCLHost::operator()() {
@@ -173,24 +177,15 @@ bool OpenCLHost::operator()() {
 	kernel.setArg(3, verticesBuffer);
 	kernel.setArg(4, vnormalsBuffer);
 	kernel.setArg(5, imageBuffer);
-	queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rt.totalWidth, rt.totalHeight));
-	check(this->queue.finish());
+	queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rt.totalWidth, rt.totalHeight), cl::NDRange(16, 16));
+	cl_int err;
+	check(err = this->queue.finish());
 
-	return true; // TODO
+	return err == CL_SUCCESS;
 }
 
 void OpenCLHost::loadMem(float * image) {
-	// set image grey (debugging)
-// 	for (std::size_t i = 0; i < this->rt.totalWidth * this->rt.totalHeight; ++i) {
-// 		image[i] = 0.7f;
-// 	}
-
-	cl::size_t<3> origin;
-	cl::size_t<3> region;
-	region[0] = rt.totalWidth;
-	region[1] = rt.totalHeight;
-	region[2] = 1;
-	check(this->queue.enqueueReadImage(this->imageBuffer, CL_TRUE, origin, region, 0, 0, image, NULL, NULL));
+	this->queue.enqueueReadBuffer(this->imageBuffer, CL_TRUE, 0, rt.totalWidth * rt.totalHeight * sizeof(float), image);
 	check(this->queue.finish());
 }
 

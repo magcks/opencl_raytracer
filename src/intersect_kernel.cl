@@ -1,32 +1,11 @@
-// #pragma OPENCL EXTENSION cl_amd_printf : enable
-
 #ifndef M_PI
-#define M_PI             3.14159265358979323846
-#define M_PI_2           1.57079632679489661923
+#define M_PI             3.14159265358979323846f
+#define M_PI_2           1.57079632679489661923f
 #endif
-
-typedef struct Mesh {
-	const __global float4 * vertices;
-	const __global uint * faces;
-	const __global float4 * vnormals;
-} Mesh;
-
-typedef struct Triangle {
-	Mesh const* mesh;
-	uint faceID;
-} Triangle;
-
-
-typedef struct Ray {
-	float4 position;
-	float4 direction;
-// 	float4 inverse;
-// 	char4 sign;
-} Ray;
 
 
 typedef struct Intersection {
-	Mesh const* mesh;
+// 	Mesh const* mesh;
 	uint faceID;
 	float4 bary;
 	float4 position;
@@ -44,26 +23,26 @@ typedef struct HemisphereSampler {
 
 // Smits ray-box intersection test using slabs
 // http://www.cs.utah.edu/~awilliam/box/box.pdf
-inline bool aabb_intersect(__global const float4 * bb, Ray * ray, float * maxDistance) {
+inline bool aabb_intersect(__global const float4 * bb, float4 rp, float4 rd, float maxDistance) {
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
-	float div = 1.0f / ray->direction.x;
+	float div = 1.0f / rd.x;
 	if (div >= 0) {
-		tmin = (bb[0].x - ray->position.x) * div;
-		tmax = (bb[1].x - ray->position.x) * div;
+		tmin = (bb[0].x - rp.x) * div;
+		tmax = (bb[1].x - rp.x) * div;
 	}
 	else {
-		tmin = (bb[1].x - ray->position.x) * div;
-		tmax = (bb[0].x - ray->position.x) * div;
+		tmin = (bb[1].x - rp.x) * div;
+		tmax = (bb[0].x - rp.x) * div;
 	}
 
-	div = 1 / ray->direction.y;
+	div = 1 / rd.y;
 	if (div >= 0) {
-		tymin = (bb[0].y - ray->position.y) * div;
-		tymax = (bb[1].y - ray->position.y) * div;
+		tymin = (bb[0].y - rp.y) * div;
+		tymax = (bb[1].y - rp.y) * div;
 	}
 	else {
-		tymin = (bb[1].y - ray->position.y) * div;
-		tymax = (bb[0].y - ray->position.y) * div;
+		tymin = (bb[1].y - rp.y) * div;
+		tymax = (bb[0].y - rp.y) * div;
 	}
 
 	if (tmin > tymax || tymin > tmax)
@@ -72,14 +51,14 @@ inline bool aabb_intersect(__global const float4 * bb, Ray * ray, float * maxDis
 	tmin = max(tmin, tymin);
 	tmax = min(tmax, tymax);
 
-	div = 1 / ray->direction.z;
+	div = 1 / rd.z;
 	if (div >= 0) {
-		tzmin = (bb[0].z - ray->position.z) * div;
-		tzmax = (bb[1].z - ray->position.z) * div;
+		tzmin = (bb[0].z - rp.z) * div;
+		tzmax = (bb[1].z - rp.z) * div;
 	}
 	else {
-		tzmin = (bb[1].z - ray->position.z) * div;
-		tzmax = (bb[0].z - ray->position.z) * div;
+		tzmin = (bb[1].z - rp.z) * div;
+		tzmax = (bb[0].z - rp.z) * div;
 	}
 
 	if (tmin > tzmax || tzmin > tmax)
@@ -88,52 +67,24 @@ inline bool aabb_intersect(__global const float4 * bb, Ray * ray, float * maxDis
 	tmin = max(tmin, tzmin);
 	tmax = min(tmax, tzmax);
 
-	//printf("AABB%f\n", tmin);
+	return tmin < maxDistance && tmax > 0.0f;
 
-	return tmin < (*maxDistance) && tmax > 0.0f;
-// this is slower:
-// 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
-// 
-// 	tmin = (bb[ray->sign.x].x - ray->position.x) * ray->inverse.x;
-// 	tmax = (bb[1-ray->sign.x].x - ray->position.x) * ray->inverse.x;
-// 	tymin = (bb[ray->sign.y].y - ray->position.y) * ray->inverse.y;
-// 	tymax = (bb[1-ray->sign.y].y - ray->position.y) * ray->inverse.y;
-// 	if ( (tmin > tymax) || (tymin > tmax) )
-// 	return false;
-// 	if (tymin > tmin)
-// 	tmin = tymin;
-// 	if (tymax < tmax)
-// 	tmax = tymax;
-// 	tzmin = (bb[ray->sign.z].z - ray->position.z) * ray->inverse.z;
-// 	tzmax = (bb[1-ray->sign.z].z - ray->position.z) * ray->inverse.z;
-// 	if ( (tmin > tzmax) || (tzmin > tmax) )
-// 	return false;
-// 	if (tzmin > tmin)
-// 	tmin = tzmin;
-// 	if (tzmax < tmax)
-// 	tmax = tzmax;
-// 	return ( (tmin < (*maxDistance)) && (tmax > 0.0f) );
-
-}
-
-inline float4 triangle_get_element(Triangle * tri, uint index) {
-	return tri->mesh->vertices[tri->mesh->faces[tri->faceID + index]];
 }
 
 /*
  * Src: http://geomalgorithms.com/a06-_intersect-2.html
  */
-inline bool triangle_intersect(Triangle * tri, Ray * ray, Intersection * intersection) {
+inline bool triangle_intersect(float4 ta, float4 tb, float4 tc, uint faceID, float4 rp, float4 rd, Intersection * intersection) {
 	float const EPSILON2 = 0.000001;
 
 	// Get triangle edge vectors and plane normal
-	float4 u = triangle_get_element(tri, 1) - triangle_get_element(tri, 0);
-	float4 v = triangle_get_element(tri, 2) - triangle_get_element(tri, 0);
+	float4 u = tb - ta;
+	float4 v = tc - ta;
 	float4 n = cross(u, v);
 
-	float4 w0 = ray->position - triangle_get_element(tri, 0);
+	float4 w0 = rp - ta;
 	float a = -dot(n, w0);
-	float b = dot(n, ray->direction);
+	float b = dot(n, rd);
 
 	// Check if ray is parallel to triangle plane.
 	if (fabs(b) < EPSILON2)
@@ -145,13 +96,13 @@ inline bool triangle_intersect(Triangle * tri, Ray * ray, Intersection * interse
 		return false;
 
 	// Intersect point of ray and plane
-	float4 intersectionPoint = ray->position + r * ray->direction;
+	float4 intersectionPoint = rp + r * rd;
 
 	// Is I inside T?
 	float uu = dot(u, u);
 	float uv = dot(u, v);
 	float vv = dot(v, v);
-	float4 w = intersectionPoint - triangle_get_element(tri, 0);
+	float4 w = intersectionPoint - ta;
 	float wu = dot(u, w);
 	float wv = dot(w, v);
 	float D = uv * uv - uu * vv;
@@ -165,10 +116,9 @@ inline bool triangle_intersect(Triangle * tri, Ray * ray, Intersection * interse
 		return false;
 
 	// Intersection looks good. Fill result.
-	float const distance = length(intersectionPoint - ray->position);
+	float const distance = length(intersectionPoint - rp);
 	if (intersection->distance > distance) {
-		intersection->mesh = tri->mesh;
-		intersection->faceID = tri->faceID;
+		intersection->faceID = faceID;
 		intersection->bary = (float4)(1.0f - s - t, s, t, 0);
 		intersection->position = intersectionPoint;
 		intersection->distance = distance;
@@ -176,17 +126,17 @@ inline bool triangle_intersect(Triangle * tri, Ray * ray, Intersection * interse
 	return true;
 }
 
-inline float shading(Ray * ray, float4 * normal) {
-	return min(1.0f, fabs(dot((*normal), ray->direction)));
+inline float shading(float4 rd, float4 normal) {
+	return min(1.0f, fabs(dot((normal), rd)));
 }
 
-inline float4 get_smooth_normal(Intersection const * intersection) {
-	uint v0 = intersection->mesh->faces[intersection->faceID + 0];
-	uint v1 = intersection->mesh->faces[intersection->faceID + 1];
-	uint v2 = intersection->mesh->faces[intersection->faceID + 2];
-	return normalize(intersection->mesh->vnormals[v0] * (float4) (intersection->bary.x)
-			+ intersection->mesh->vnormals[v1] * (float4) (intersection->bary.y)
-			+ intersection->mesh->vnormals[v2] * (float4) (intersection->bary.z));
+inline float4 get_smooth_normal(const __global uint * faces, const __global float4 * vertices, const __global float4 * vnormals, Intersection intersection) {
+	uint v0 = faces[intersection.faceID + 0];
+	uint v1 = faces[intersection.faceID + 1];
+	uint v2 = faces[intersection.faceID + 2];
+	return normalize(vnormals[v0] * (float4) (intersection.bary.x)
+			+ vnormals[v1] * (float4) (intersection.bary.y)
+			+ vnormals[v2] * (float4) (intersection.bary.z));
 }
 
 // RANDOM
@@ -256,12 +206,12 @@ inline float4 hemisphere_sampler_sample(HemisphereSampler * hemi) {
 	return normalize(direction);
 }
 
-inline bool scene_intersect(__global const uint * nodes, __global const float4 * aabbs, Mesh * mesh, Ray * ray, Intersection * intersection, float * max) {
+inline bool scene_intersect(__global const uint * nodes, __global const float4 * aabbs, const __global uint * faces, const __global float4 * vertices, const __global float4 * vnormals, float4 rp, float4 rd, Intersection * intersection, float maxDistance) {
 	bool isIntersecting = false;
 	uint triIndex = 0;
 	for (uint i = 0; i < nodes[0];) {
 		uint const nodeCount = nodes[i];
-		if (!aabb_intersect(aabbs + (i << 1), ray, max)) {
+		if (!aabb_intersect(aabbs + (i << 1), rp, rd, maxDistance)) {
 			// Skip this node and all its children
 			triIndex += (nodeCount + 1) >> 1;
 
@@ -271,10 +221,8 @@ inline bool scene_intersect(__global const uint * nodes, __global const float4 *
 			if (nodeCount == 1) {
 				// If node_count is 1 it's a leaf
 				uint faceID = triIndex * 3;
-				Triangle tri;
-				tri.mesh = mesh;
-				tri.faceID = faceID;
-				isIntersecting |= triangle_intersect(&tri, ray, intersection);
+
+				isIntersecting |= triangle_intersect(vertices[faces[faceID + 0]], vertices[faces[faceID + 1]], vertices[faces[faceID + 2]], faceID, rp, rd, intersection);
 
 				++triIndex;
 			}
@@ -291,11 +239,11 @@ inline bool scene_intersect(__global const uint * nodes, __global const float4 *
 #define AO_METHOD_RANDOM 1
 
 // AMBIENT OCCULUTION
-inline float ambient_occlusion(__global const uint * nodes, __global const float4 * aabbs, Mesh * mesh, float4 const point, float4 const normal, int const index) {
+inline float ambient_occlusion(__global const uint * nodes, __global const float4 * aabbs, const __global uint * faces, const __global float4 * vertices, const __global float4 * vnormals, float4 point, float4 normal, int index) {
 	float4 p = point + (normal * (1.0f / 100000.0f));
 
 	uint hits = 0;
-	float max = AO_MAXDISTANCE;
+	float maxDistance = AO_MAXDISTANCE;
 
 #if AO_METHOD == AO_METHOD_PERFECT
 	uint n = 0;
@@ -315,7 +263,7 @@ inline float ambient_occlusion(__global const uint * nodes, __global const float
 		h.x = 1.0;
 	else if (fabs(h.y) <= fabs(h.x) && fabs(h.y) <= fabs(h.z))
 		h.y = 1.0;
-	else
+	else if (fabs(h.z) <= fabs(h.x) && fabs(h.z) <= fabs(h.y))
 		h.z = 1.0;
 
 	float4 basisX = cross(h, basisY);
@@ -333,21 +281,19 @@ inline float ambient_occlusion(__global const uint * nodes, __global const float
 		float const theta = M_PI_2 - angleRad;
 
 		for (uint currentRay = 0; currentRay <= rayCount; ++currentRay) {
-			float const phi = (2.0 * M_PI * currentRay) / rayCount;
+			float const phi = (2.0f * M_PI * currentRay) / rayCount;
 
 			float xs = sin(theta) * cospi(phi);
 			float ys = cos(theta);
 			float zs = sin(theta) * sinpi(phi);
 
-			Ray ray;
-			ray.position = p;
-			ray.direction = basisX * xs + basisY * ys + basisZ * zs; // is normalized
+			float4 rd = basisX * xs + basisY * ys + basisZ * zs; // is normalized
 
 			Intersection intersection;
 
 			++n;
 
-			if (scene_intersect(nodes, aabbs, mesh, &ray, &intersection, &max))
+			if (scene_intersect(nodes, aabbs, faces, vertices, vnormals, p, rd, &intersection, maxDistance))
 				++hits;
 		}
 	}
@@ -360,25 +306,18 @@ inline float ambient_occlusion(__global const uint * nodes, __global const float
 	uint n = AO_NUMSAMPLES;
 
 	// intersect normal
-	Ray ray;
-	ray.position = p;
-	ray.direction = normal;
-
 	Intersection intersection;
 
 	++n;
 
-	if (scene_intersect(nodes, aabbs, mesh, &ray, &intersection, &max))
+	if (scene_intersect(nodes, aabbs, faces, vertices, vnormals, p, normal, &intersection, maxDistance))
 		++hits;
 
 	for (uint i = 0; i < n; ++i) {
-		Ray ray;
-		ray.position = p;
-		ray.direction = hemisphere_sampler_sample(&hemi);
-		// ray.direction = ray.direction.normalized(); // is already normalized
+		float4 rd = hemisphere_sampler_sample(&hemi);
 
 		Intersection intersection;
-		if (!scene_intersect(nodes, aabbs, mesh, &ray, &intersection, &max))
+		if (!scene_intersect(nodes, aabbs, faces, vertices, vnormals, p, rd, &intersection, maxDistance))
 			continue;
 
 		++hits;
@@ -389,7 +328,7 @@ inline float ambient_occlusion(__global const uint * nodes, __global const float
 }
 
 
-__kernel void intersect(__global const uint * faces, __global const uint * nodes, __global const float4 * aabbs, __global const float4 * vertices, __global const float4 * vnormals, __write_only image2d_t image) {
+__kernel void intersect(__global const uint * faces, __global const uint * nodes, __global const float4 * aabbs, __global const float4 * vertices, __global const float4 * vnormals, __global float *image) {
 	uint x = get_global_id(0);
 	uint y = get_global_id(1);
 
@@ -401,46 +340,40 @@ __kernel void intersect(__global const uint * faces, __global const uint * nodes
 
 	float a = FOCALLENGTH * max(WIDTH, HEIGHT);
 
-	Ray ray;
-	ray.position = cameraPosition;
-	ray.direction = (float4)(
+	float4 rd = (float4)(
 		((float) x + 0.5f) / a - WIDTH / (2.0f * a),
 		-( ((float) y + 0.5f) / a - HEIGHT / (2.0f * a) ),
 		-1.0f,
 		0.0f);
 
-	ray.direction = normalize(ray.direction);
+	rd = normalize(rd);
 
 	float maxDistance = 100000.0f;
-
-	Mesh mesh;
-	mesh.vertices = vertices;
-	mesh.faces = faces;
-	mesh.vnormals = vnormals;
 
 	Intersection intersection;
 	intersection.distance = INFINITY;
 
-	bool isIntersecting = scene_intersect(nodes, aabbs, &mesh, &ray, &intersection, &maxDistance);
+	bool isIntersecting = scene_intersect(nodes, aabbs, faces, vertices, vnormals, cameraPosition, rd, &intersection, maxDistance);
+
 
 	float value;
 	if (!isIntersecting) {
 		value = 0.0f;
 	}
 	else {
-		float4 normal = get_smooth_normal(&intersection);
+		float4 normal = get_smooth_normal(faces, vertices, vnormals, intersection);
 #ifdef SHADING
-		value = shading(&ray, &normal);
+		value = shading(rd, normal);
 #else
 		value = 1.0f;
 #endif // SHADING
-
+// 
 #ifdef AO
 #if AO_NUMSAMPLES > 0
-		value *= ambient_occlusion(nodes, aabbs, &mesh, intersection.position, normal, index);
+		value *= ambient_occlusion(nodes, aabbs, faces, vertices, vnormals, intersection.position, normal, index);
 #endif
 #endif // AO
 	}
 
-	write_imagef(image, pos, (float4) (value, value, value, value));
+	image[index] = value;
 }

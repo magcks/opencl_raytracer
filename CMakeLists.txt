@@ -33,6 +33,8 @@ foreach(f ${srccl})
 	add_definitions(-D${F}="${f}")
 endforeach()
 
+add_definitions(-DENABLE_OPENCL_20=0)
+
 add_executable(render ${src})
 
 if(OpenCL_FOUND)

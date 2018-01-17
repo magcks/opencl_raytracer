@@ -149,5 +149,6 @@ class OpenCLHost {
 		cl::Buffer aabbsBuffer;
 		cl::Buffer verticesBuffer;
 		cl::Buffer vnormalsBuffer;
-		cl::Image2D imageBuffer;
+// 		cl::Image2D imageBuffer;
+		cl::Buffer imageBuffer;
 };
