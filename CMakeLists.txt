@@ -27,8 +27,8 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-file(GLOB src "*.cc")
-file(GLOB srccl "*.cl")
+file(GLOB src "src/*.cc")
+file(GLOB srccl "src/*.cl")
 
 foreach(f ${srccl})
 	get_filename_component(F ${f} NAME)
