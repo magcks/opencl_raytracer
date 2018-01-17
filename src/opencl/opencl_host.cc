@@ -174,10 +174,6 @@ bool OpenCLHost::operator()() {
 	kernel.setArg(4, vnormalsBuffer);
 	kernel.setArg(5, imageBuffer);
 	queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rt.totalWidth, rt.totalHeight));
-
-// 	cl::KernelFunctor intersect(cl::Kernel(this->program, "intersect"), this->queue, cl::NullRange, cl::NDRange(this->rt.totalWidth, this->rt.totalHeight), cl::NullRange);
-// 	intersect(this->facesBuffer, this->nodesBuffer, this->aabbsBuffer, this->verticesBuffer, this->vnormalsBuffer, this->imageBuffer);
-// 	check(intersect.getError());
 	check(this->queue.finish());
 
 	return true; // TODO
