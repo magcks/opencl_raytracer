@@ -110,7 +110,7 @@ void BVH::cutFacesLongestAxis(const Mesh &mesh, std::vector<unsigned int> &faceI
  */
 void BVH::buildBVH(Mesh const &mesh) {
 	std::size_t size = mesh.faces.size() / 3;
-	std::vector<cl_uint> faceIDs(size);
+	std::vector<uint32_t> faceIDs(size);
 // 	std::cout << "LIMIT: " << faceIDs.max_size() << std::endl;
 // 	std::cout << "CAPA: " << faceIDs.capacity() << std::endl;
 
@@ -124,7 +124,7 @@ void BVH::buildBVH(Mesh const &mesh) {
 	this->triangles.reserve(size);
 // 	std::cout << "LIMIT: " << this->triangles.max_size() << std::endl;
 // 	this->triangles.reserve(size);
-	this->nodes = std::vector<cl_uint>(size * 2 - 1);
+	this->nodes = std::vector<uint32_t>(size * 2 - 1);
 	this->aabbs = std::vector<Vec3f>((size * 2 - 1) * 2);
 // 	std::cout << "LIMIT: " << this->nodes.max_size() << " WANNA HAVE: " << size * 2 - 1 << " N: " << size << std::endl;
 // 	this->nodes.reserve(size * 2 - 1);
@@ -141,7 +141,7 @@ void BVH::buildBVH(Mesh const &mesh) {
 // 	printf("\n");
 // 	printf("NODE: %d AABB: %d\n", sizeof(Node), sizeof(AABB));
 // 	printf("X1 %f\n", (*this->nodes)[1].bb.min[0]);
-// 	printf("UINT: %d\n", sizeof(cl_uint));
+// 	printf("UINT: %d\n", sizeof(uint32_t));
 // 	hexdump(&(*this->nodes)[0], 500);
 // 	std::cout << "SWAG!!!" << (*this->nodes)[0].node_count << std::endl;
 }
@@ -155,9 +155,9 @@ unsigned int const BVH::build(const Mesh &mesh, std::vector< unsigned int > &fac
 // 	this->nodes.push_back(n);
 //
 // 	std::cout << ind << std::endl;
-// 	cl_uint n;
+// 	uint32_t n;
 // 	this->nodes.at(ind) = n;
-	cl_uint & node = this->nodes.at(ind);
+	uint32_t & node = this->nodes.at(ind);
 
 	AABB bb;
 

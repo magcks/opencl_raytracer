@@ -181,10 +181,10 @@ int main(int argc, const char *argv[]) {
 		Timer timer;
 
 		// Sort faces along triagnle order
-		std::vector<cl_uint> sortedFaces;
+		std::vector<uint32_t> sortedFaces;
 		sortedFaces.reserve(mesh.faces.size());
 		for (size_t i = 0; i < bvh.triangles.size(); ++i) {
-			cl_uint faceID = bvh.triangles[i] * 3;
+			uint32_t faceID = bvh.triangles[i] * 3;
 
 			sortedFaces.push_back(mesh.faces[faceID]);
 			sortedFaces.push_back(mesh.faces[faceID + 1]);
@@ -222,7 +222,7 @@ int main(int argc, const char *argv[]) {
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
 
-	cl_float * tmp = new cl_float[rt.totalWidth * rt.totalHeight];
+	float * tmp = new float[rt.totalWidth * rt.totalHeight];
 	std::cout << std::endl;
 
 	// Load memory

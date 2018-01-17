@@ -37,7 +37,7 @@ class RayTracer {
 			totalWidth(_opts.width * (unsigned int) sqrt(_opts.nSuperSamples)),
 			totalHeight(_opts.height * (unsigned int) sqrt(_opts.nSuperSamples)) {
 		}
-		void resize(cl_float * tmp, unsigned char * image);
+		void resize(float * tmp, unsigned char * image);
 		Options opts;
 		unsigned int totalWidth;
 		unsigned int totalHeight;

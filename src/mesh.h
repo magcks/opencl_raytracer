@@ -14,7 +14,7 @@
 // positions "3 * f + 0", "3 * f + 1", "3 * f + 2" in the faces list.
 struct Mesh {
 	std::vector<Vec3f> vertices;
-	std::vector<cl_uint> faces;
+	std::vector<uint32_t> faces;
 	std::vector<Vec3f> vnormals;
 };
 /* Loads a triangle mesh from an OFF model file. */

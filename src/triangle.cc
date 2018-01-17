@@ -29,6 +29,6 @@ Vec3f Triangle::getNormalVector() const {
 	return n / n.length();
 }
 
-cl_uint Triangle::getFaceID() const {
+uint32_t Triangle::getFaceID() const {
 	return this->faceID;
 }

@@ -2,9 +2,8 @@
 #include <cmath>
 #include <ostream>
 #include <algorithm>
-#include <CL/cl.h>
 template <typename T> class Vec3;
-typedef Vec3<cl_float> Vec3f;
+typedef Vec3<float> Vec3f;
 typedef Vec3<double> Vec3d;
 typedef Vec3<int> Vec3i;
 // Representation of a 3-vector with common functionality.

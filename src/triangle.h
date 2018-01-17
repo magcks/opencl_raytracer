@@ -32,7 +32,7 @@ class Triangle {
 		Vec3f getAABBMin(void) const;
 		Vec3f getAABBMax(void) const;
 		AABB getAABB(void) const;
-		cl_uint getFaceID() const;
+		uint32_t getFaceID() const;
 		Vec3f const &operator[](int index) const;
 		Vec3f &operator[](int index);
 	private:

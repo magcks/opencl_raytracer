@@ -61,7 +61,7 @@ void OpenCLHost::printInfo() {
 		std::cout << Color::red <<  "Error: No devices found." << Color::reset << std::endl;
 }
 
-void OpenCLHost::prepare(std::vector<cl_uint> &faces, std::vector<cl_uint> &nodes, std::vector<Vec3f> &aabbs, std::vector<Vec3f> &vertices, std::vector<Vec3f> &vnormals) {
+void OpenCLHost::prepare(std::vector<uint32_t> &faces, std::vector<uint32_t> &nodes, std::vector<Vec3f> &aabbs, std::vector<Vec3f> &vertices, std::vector<Vec3f> &vnormals) {
 	cl_int err;
 
 	std::vector<cl::Platform> allPlatforms;
@@ -137,28 +137,28 @@ void OpenCLHost::prepare(std::vector<cl_uint> &faces, std::vector<cl_uint> &node
 	check(err);
 
 	std::size_t mem = 0;
-	mem += faces.size() * sizeof(cl_uint);
-	mem += nodes.size() * sizeof(cl_uint);
+	mem += faces.size() * sizeof(uint32_t);
+	mem += nodes.size() * sizeof(uint32_t);
 	mem += aabbs.size() * sizeof(Vec3f);
 	mem += vertices.size() * sizeof(Vec3f);
 	mem += vnormals.size() * sizeof(Vec3f);
-	mem += this->rt.totalWidth * this->rt.totalHeight * sizeof(cl_float);
+	mem += this->rt.totalWidth * this->rt.totalHeight * sizeof(float);
 
 	std::cout << "Requesting " << mem << " Bytes of memory." << std::endl;
 
-	this->facesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	faces.size() * sizeof(cl_uint));
-	this->nodesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	nodes.size() * sizeof(cl_uint));
+	this->facesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	faces.size() * sizeof(uint32_t));
+	this->nodesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	nodes.size() * sizeof(uint32_t));
 	this->aabbsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	aabbs.size() * sizeof(Vec3f));
 	this->verticesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	vertices.size() * sizeof(Vec3f));
 	this->vnormalsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY,	vnormals.size() * sizeof(Vec3f));
 	this->imageBuffer = cl::Image2D(context, CL_MEM_WRITE_ONLY,	cl::ImageFormat(CL_INTENSITY, CL_FLOAT), this->rt.totalWidth, this->rt.totalHeight, 0, NULL, NULL);
-// 	this->imageBuffer = cl::Buffer(context, CL_MEM_WRITE_ONLY,	this->rt.totalWidth * this->rt.totalHeight * sizeof(cl_uchar)); // TODO: INFO: This is READ_WRITE, not WRITE_ONLY!
+// 	this->imageBuffer = cl::Buffer(context, CL_MEM_WRITE_ONLY,	this->rt.totalWidth * this->rt.totalHeight * sizeof(uint8_t)); // TODO: INFO: This is READ_WRITE, not WRITE_ONLY!
 
 	this->queue = cl::CommandQueue(context, device);
 
 	// Write data to GPU
-	check(this->queue.enqueueWriteBuffer(this->facesBuffer, CL_TRUE, 0,	faces.size() * sizeof(cl_uint),		&(faces[0])));
-	check(this->queue.enqueueWriteBuffer(this->nodesBuffer, CL_TRUE, 0,	nodes.size() * sizeof(cl_uint),		&(nodes[0])));
+	check(this->queue.enqueueWriteBuffer(this->facesBuffer, CL_TRUE, 0,	faces.size() * sizeof(uint32_t),		&(faces[0])));
+	check(this->queue.enqueueWriteBuffer(this->nodesBuffer, CL_TRUE, 0,	nodes.size() * sizeof(uint32_t),		&(nodes[0])));
 	check(this->queue.enqueueWriteBuffer(this->aabbsBuffer, CL_TRUE, 0,	aabbs.size() * sizeof(Vec3f),		&(aabbs[0])));
 	check(this->queue.enqueueWriteBuffer(this->verticesBuffer, CL_TRUE, 0,	vertices.size() * sizeof(Vec3f),	&(vertices[0])));
 	check(this->queue.enqueueWriteBuffer(this->vnormalsBuffer, CL_TRUE, 0,	vnormals.size() * sizeof(Vec3f),	&(vnormals[0])));
@@ -179,7 +179,7 @@ bool OpenCLHost::operator()() {
 	return true; // TODO
 }
 
-void OpenCLHost::loadMem(cl_float * image) {
+void OpenCLHost::loadMem(float * image) {
 	// set image grey (debugging)
 // 	for (std::size_t i = 0; i < this->rt.totalWidth * this->rt.totalHeight; ++i) {
 // 		image[i] = 0.7f;

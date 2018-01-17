@@ -15,8 +15,8 @@ class BVH {
 		// Constructs the BVH from the given mesh.
 		void buildBVH(Mesh const &mesh);
 		unsigned int const build(Mesh const &mesh, std::vector<unsigned int> &faceIDs, unsigned int &ind);
-		std::vector<cl_uint> triangles;
-		std::vector<cl_uint> nodes;
+		std::vector<uint32_t> triangles;
+		std::vector<uint32_t> nodes;
 		std::vector<Vec3f> aabbs;
 	private:
 		void cutFaces(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb);
