@@ -14,8 +14,8 @@ include_directories(${INSTALL_DIR}/include)
 link_directories(${INSTALL_DIR}/lib)
 
 if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "Setting build type to 'RELEASE' as none was specified.")
-    set(CMAKE_BUILD_TYPE RELEASE)
+	message(STATUS "Setting build type to 'RELEASE' as none was specified.")
+	set(CMAKE_BUILD_TYPE RELEASE)
 endif()
 
 # c++14 support
@@ -29,14 +29,7 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 
-find_package(OpenCL)
-find_package(OpenMP)
-
-if(OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
+find_package(OpenCL REQUIRED)
 
 file(GLOB src "src/*.cc")
 file(GLOB srccl "src/*.cl")
