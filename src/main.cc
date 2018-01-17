@@ -2,8 +2,10 @@
 #include <vector>
 #include <limits>
 #include <iostream>
+#include <iterator>
+#include <string>
 #include <stdlib.h>
-
+#include "apx/Parser.h"
 #include "timer.h"
 #include "mesh.h"
 #include "vec3.h"
@@ -13,36 +15,121 @@
 #include "info.h"
 #include "color.h"
 #include "opencl_host.h"
-
-#include <iterator>
-#include <string>
-
 #define _USE_MATH_DEFINES
-
 // Main routine.
-int main(int argc, char **argv) {
-	// Check arguments.
-	if (argc != 3) {
-		std::cerr << Color::red << "Syntax: " << argv[0] << " <IN_MESH.OFF> <OUT_IMAGE.PGM>" << Color::reset << std::endl;
-		return 1;
+int main(int argc, const char *argv[]) {
+	auto parser = apx::Parser();
+	parser
+		.option([](auto &&config) {
+			config
+				.flag('a')
+				.flag("ambient-occlusion-samples")
+				.description("Specifies the number of samples used for ambient occlusion. If the value `0` is specified, ambient occlusion will be disabled.")
+				.argument([](auto &&config) {
+					config
+						.name("n")
+						.optional(3)
+						.description("The number of ambient occlusion samples");
+				});
+		})
+		.option([](auto &&config) {
+			config
+				.flag('d')
+				.flag("ambient-occlusion-max-distance")
+				.description("Specifies the maximum distance that should be allowed for ambient occlusion.")
+				.argument([](auto &&config) {
+					config
+						.name("d")
+						.optional(0.2f)
+						.description("The maximum distance");
+				});
+		})
+		.option([](auto &&config) {
+			config
+				.flag('f')
+				.flag("focal-length")
+				.description("Specifies the focal length that the camera should use")
+				.argument([](auto &&config) {
+					config
+						.name("size")
+						.optional(1.0f)
+						.description("The focal length");
+				});
+		})
+		.option([](auto &&config) {
+			config
+				.flag('w')
+				.flag("width")
+				.description("Specifies the width to use for the output image")
+				.argument([](auto &&config) {
+					config
+						.name("w")
+						.optional(600)
+						.description("The output image width");
+				});
+		})
+		.option([](auto &&config) {
+			config
+				.flag('h')
+				.flag("height")
+				.description("Specifies the height to use for the output image")
+				.argument([](auto &&config) {
+					config
+						.name("h")
+						.optional(600)
+						.description("The output image height");
+				});
+		})
+		.option([](auto &&config) {
+			config
+				.flag('s')
+				.flag("supersamples")
+				.description("Specifies the number of supersamples to use")
+				.argument([](auto &&config) {
+					config
+						.name("n")
+						.optional(4)
+						.description("The number of supersamples");
+				});
+		})
+		.option([](auto &&config) {
+			config
+				.flag("help")
+				.description("Displays this help message.");
+		})
+		.argument([](auto &&config) {
+			config
+				.name("INPUT")
+				.optional("")
+				.description("The input OFF mesh");
+		})
+		.argument([](auto &&config) {
+			config
+				.name("OUTPUT")
+				.optional("out.pgm")
+				.description("The output image (pgm)");
+		});
+	auto &&config = parser.parse(argc, argv);
+	if (config.argument["INPUT"].as<std::string>() == "" || config.option["help"]) {
+		parser.help(argv);
+		std::exit(EXIT_FAILURE);
 	}
-
 	// Render options for output image.
 	RayTracer::Options opts;
-	opts.width = 600;
-	opts.height = 600;
-	opts.focalLength = 1.0f;
-	opts.nSuperSamples = 4;
+	opts.width = config.option["width"]["w"].as<std::size_t>();
+	opts.height = config.option["height"]["h"].as<std::size_t>();
+	opts.focalLength = config.option["focal-length"]["size"].as<float>();
+	opts.nSuperSamples = config.option["supersamples"]["n"].as<std::size_t>();
 	opts.shading = true;
-	opts.ambientOcclusion = true;
-	opts.aoMaxDistance = 0.2f;
-	opts.aoNumSamples = 3;
+	opts.ambientOcclusion = config.option["ambient-occlusion-samples"]["n"].as<std::size_t>() != 0;
+	opts.aoMaxDistance = config.option["ambient-occlusion-max-distance"]["d"].as<float>();
+	opts.aoNumSamples = config.option["ambient-occlusion-samples"]["n"].as<std::size_t>();
 	opts.aoMethod = RayTracer::AO_METHOD_PERFECT; // IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of x. This will result in a huge amount of rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres. See README.
 	opts.aoAlphaMin = 4; // degrees!!!
 	opts.aoAlphaMax = 90; // you shouldn't change this
 
-	std::string inMesh(argv[1]);
-	std::string outImage(argv[2]);
+	std::string inMesh(config.argument["INPUT"].as<std::string>());
+	std::string outImage(config.argument["OUTPUT"].as<std::string>());
 
 	// Read input mesh.
 	std::cout << Color::blue << "<- " << Color::red << "BVH SECTION" << Color::blue << " ->" << std::endl;
