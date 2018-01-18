@@ -5,7 +5,7 @@
 #include <iterator>
 #include <string>
 #include <stdlib.h>
-#include "apx/Parser.h"
+// #include "apx/Parser.h"
 #include "timer.h"
 #include "mesh.h"
 #include "vec3.h"
@@ -18,6 +18,7 @@
 #define _USE_MATH_DEFINES
 // Main routine.
 int main(int argc, const char *argv[]) {
+#if 0
 	auto parser = apx::Parser();
 	parser
 		.option([](auto &&config) {
@@ -131,6 +132,23 @@ int main(int argc, const char *argv[]) {
 
 	std::string inMesh(config.argument["INPUT"].as<std::string>());
 	std::string outImage(config.argument["OUTPUT"].as<std::string>());
+#endif
+	RayTracer::Options opts;
+	opts.width = 600;
+	opts.height = 600;
+	opts.focalLength = 1;
+	opts.nSuperSamples = 4;
+	opts.shading = true;
+	opts.ambientOcclusion = true;
+	opts.aoMaxDistance = .2f;
+	opts.aoNumSamples = 3;
+	opts.aoMethod = RayTracer::AO_METHOD_PERFECT; // IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of x. This will result in a huge amount of rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres. See README.
+	opts.aoAlphaMin = 4; // degrees!!!
+	opts.aoAlphaMax = 90; // you shouldn't change this
+	opts.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH
+
+	std::string inMesh(argv[1]);
+	std::string outImage(argv[2]);
 
 	// Read input mesh.
 	std::cout << Color::blue << "<- " << Color::red << "BVH SECTION" << Color::blue << " ->" << std::endl;

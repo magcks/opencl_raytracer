@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.1)
 
 project(OpenCLRaytracer)
 
-include(ExternalProject)
-ExternalProject_Add(apx-git
-	GIT_REPOSITORY git@github.com:kdex/apx.git
-	PREFIX ${CMAKE_BINARY_DIR}/apx
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-	UPDATE_DISCONNECTED true
-)
-ExternalProject_Get_Property(apx-git INSTALL_DIR)
-include_directories(${INSTALL_DIR}/include)
-link_directories(${INSTALL_DIR}/lib)
+# include(ExternalProject)
+# ExternalProject_Add(apx-git
+# 	GIT_REPOSITORY git@github.com:kdex/apx.git
+# 	PREFIX ${CMAKE_BINARY_DIR}/apx
+# 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+# 	UPDATE_DISCONNECTED true
+# )
+# ExternalProject_Get_Property(apx-git INSTALL_DIR)
+# include_directories(${INSTALL_DIR}/include)
+# link_directories(${INSTALL_DIR}/lib)
 
 if(NOT CMAKE_BUILD_TYPE)
 	message(STATUS "Setting build type to 'RELEASE' as none was specified.")
@@ -39,5 +39,5 @@ if(OpenCL_FOUND)
 	target_link_libraries(render ${OpenCL_LIBRARIES})
 	target_include_directories(render PUBLIC ${OpenCL_INCLUDE_DIRS})
 endif()
-add_dependencies(render apx-git)
-target_link_libraries(render apx)
+# add_dependencies(render apx-git)
+# target_link_libraries(render apx)
