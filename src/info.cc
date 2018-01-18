@@ -1,5 +1,4 @@
 #include "info.h"
-
 std::string Info::str() {
 	std::size_t resize = this->getBiggestNameLength() + this->extraSpace + this->getChildrenDepth() * this->spaceWidth;
 	std::stringstream ss;

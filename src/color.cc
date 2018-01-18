@@ -1,6 +1,4 @@
-
 #include "color.h"
-
 #ifndef NO_COLORS
 const std::string Color::reset       = "\033[0m";
 const std::string Color::red         = "\033[0;91m";
