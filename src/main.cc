@@ -25,7 +25,7 @@ int main(int argc, const char *argv[]) {
 	options.enableAO = true;
 	options.aoMaxDistance = 0.2f;
 	options.aoNumSamples = 3;
-	options.aoMethod = RayTracer::AO_METHOD_PERFECT;
+	options.aoMethod = /*RayTracer::AO_METHOD_PERFECT*/RayTracer::AO_METHOD_PERFECT;
 	options.aoAlphaMin = 4; // degrees!!!
 	options.aoAlphaMax = 90; // you shouldn't change this
 	options.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH

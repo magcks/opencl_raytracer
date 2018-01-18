@@ -158,7 +158,7 @@ inline void hemisphere_sampler(HemisphereSampler *hemi, float4 normal, uint inde
 	else if (fabs(h.y) <= fabs(h.x) && fabs(h.y) <= fabs(h.z)) {
 		h.y = 1.0;
 	}
-	else {
+	else if (fabs(h.z) <= fabs(h.x) && fabs(h.z) <= fabs(h.y)) {
 		h.z = 1.0;
 	}
 	hemi->basisX = cross(h, hemi->basisY);
