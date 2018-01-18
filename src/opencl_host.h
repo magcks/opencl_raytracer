@@ -134,13 +134,13 @@ class OpenCLHost {
 			}
 		}
 		// Constructor
-		OpenCLHost(RayTracer & _rt) : rt(_rt) {}
-		void prepare(std::vector<uint32_t> &faces, std::vector<uint32_t> &nodes, std::vector<Vec3f> &aabbs, std::vector<Vec3f> &vertices, std::vector<Vec3f> &vnormals);
+		OpenCLHost(const RayTracer &rt) : rt(rt) {}
+		void prepare(const std::vector<uint32_t> &faces, const std::vector<uint32_t> &nodes, const std::vector<Vec3f> &aabbs, const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &vnormals);
 		bool operator()();
-		void loadMem(float * image);
+		void loadMemory(float *image);
 		static void printInfo();
 	private:
-		RayTracer & rt;
+		const RayTracer &rt;
 		cl::Program program;
 		cl::CommandQueue queue;
 		// Buffers

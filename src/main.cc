@@ -5,7 +5,6 @@
 #include <iterator>
 #include <string>
 #include <stdlib.h>
-// #include "apx/Parser.h"
 #include "timer.h"
 #include "mesh.h"
 #include "vec3.h"
@@ -16,270 +15,124 @@
 #include "color.h"
 #include "opencl_host.h"
 #define _USE_MATH_DEFINES
-// Main routine.
 int main(int argc, const char *argv[]) {
-#if 0
-	auto parser = apx::Parser();
-	parser
-		.option([](auto &&config) {
-			config
-				.flag('a')
-				.flag("ambient-occlusion-samples")
-				.description("Specifies the number of samples used for ambient occlusion. If the value `0` is specified, ambient occlusion will be disabled.")
-				.argument([](auto &&config) {
-					config
-						.name("n")
-						.optional(3)
-						.description("The number of ambient occlusion samples");
-				});
-		})
-		.option([](auto &&config) {
-			config
-				.flag('d')
-				.flag("ambient-occlusion-max-distance")
-				.description("Specifies the maximum distance that should be allowed for ambient occlusion.")
-				.argument([](auto &&config) {
-					config
-						.name("d")
-						.optional(0.2f)
-						.description("The maximum distance");
-				});
-		})
-		.option([](auto &&config) {
-			config
-				.flag('f')
-				.flag("focal-length")
-				.description("Specifies the focal length that the camera should use")
-				.argument([](auto &&config) {
-					config
-						.name("size")
-						.optional(1.0f)
-						.description("The focal length");
-				});
-		})
-		.option([](auto &&config) {
-			config
-				.flag('w')
-				.flag("width")
-				.description("Specifies the width to use for the output image")
-				.argument([](auto &&config) {
-					config
-						.name("w")
-						.optional(600)
-						.description("The output image width");
-				});
-		})
-		.option([](auto &&config) {
-			config
-				.flag('h')
-				.flag("height")
-				.description("Specifies the height to use for the output image")
-				.argument([](auto &&config) {
-					config
-						.name("h")
-						.optional(600)
-						.description("The output image height");
-				});
-		})
-		.option([](auto &&config) {
-			config
-				.flag('s')
-				.flag("supersamples")
-				.description("Specifies the number of supersamples to use")
-				.argument([](auto &&config) {
-					config
-						.name("n")
-						.optional(4)
-						.description("The number of supersamples");
-				});
-		})
-		.option([](auto &&config) {
-			config
-				.flag("help")
-				.description("Displays this help message.");
-		})
-		.argument([](auto &&config) {
-			config
-				.name("INPUT")
-				.optional("")
-				.description("The input OFF mesh");
-		})
-		.argument([](auto &&config) {
-			config
-				.name("OUTPUT")
-				.optional("out.pgm")
-				.description("The output image (pgm)");
-		});
-	auto &&config = parser.parse(argc, argv);
-	if (config.argument["INPUT"].as<std::string>() == "" || config.option["help"]) {
-		parser.help(argv);
-		std::exit(EXIT_FAILURE);
-	}
-	// Render options for output image.
-	RayTracer::Options opts;
-	opts.width = config.option["width"]["w"].as<std::size_t>();
-	opts.height = config.option["height"]["h"].as<std::size_t>();
-	opts.focalLength = config.option["focal-length"]["size"].as<float>();
-	opts.nSuperSamples = config.option["supersamples"]["n"].as<std::size_t>();
-	opts.shading = true;
-	opts.ambientOcclusion = config.option["ambient-occlusion-samples"]["n"].as<std::size_t>() != 0;
-	opts.aoMaxDistance = config.option["ambient-occlusion-max-distance"]["d"].as<float>();
-	opts.aoNumSamples = config.option["ambient-occlusion-samples"]["n"].as<std::size_t>();
-	opts.aoMethod = RayTracer::AO_METHOD_PERFECT; // IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of x. This will result in a huge amount of rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres. See README.
-	opts.aoAlphaMin = 4; // degrees!!!
-	opts.aoAlphaMax = 90; // you shouldn't change this
-	opts.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH
-
-	std::string inMesh(config.argument["INPUT"].as<std::string>());
-	std::string outImage(config.argument["OUTPUT"].as<std::string>());
-#endif
-	RayTracer::Options opts;
-	opts.width = 600;
-	opts.height = 600;
-	opts.focalLength = 1;
-	opts.nSuperSamples = 4;
-	opts.shading = true;
-	opts.ambientOcclusion = true;
-	opts.aoMaxDistance = .2f;
-	opts.aoNumSamples = 3;
-	opts.aoMethod = RayTracer::AO_METHOD_PERFECT; // IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of x. This will result in a huge amount of rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres. See README.
-	opts.aoAlphaMin = 4; // degrees!!!
-	opts.aoAlphaMax = 90; // you shouldn't change this
-	opts.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH
-
+	RayTracer::Options options;
+	options.width = 600;
+	options.height = 600;
+	options.focalLength = 1;
+	options.nSuperSamples = 4;
+	options.enableShading = true;
+	options.enableAO = true;
+	options.aoMaxDistance = 0.2f;
+	options.aoNumSamples = 3;
+	options.aoMethod = RayTracer::AO_METHOD_PERFECT;
+	options.aoAlphaMin = 4; // degrees!!!
+	options.aoAlphaMax = 90; // you shouldn't change this
+	options.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH
 	std::string inMesh(argv[1]);
 	std::string outImage(argv[2]);
-
 	// Read input mesh.
-	std::cout << Color::blue << "<- " << Color::red << "BVH SECTION" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Reading input mesh..." << std::endl;
+	std::cout << Color::blue << "<- " << Color::red << "BVH section" << Color::blue << " ->" << std::endl;
+	std::cout << Color::yellow << "Reading input mesh…" << std::endl;
 	Mesh mesh;
 	load_off_mesh(inMesh, &mesh);
 	compute_vertex_normals(&mesh);
 	std::cout << Color::blue << "- " << Color::yellow << "Vertices: " << Color::red << mesh.vertices.size() << Color::yellow << std::endl;
 	std::cout << Color::blue << "- " << Color::yellow << "Triangles: " << Color::red << (mesh.faces.size() / 3) << Color::reset << std::endl;
-
-	RayTracer rt(opts);
-
-	if (opts.aoMethod == RayTracer::AO_METHOD_PERFECT) {
+	RayTracer rt(options);
+	if (options.aoMethod == RayTracer::AO_METHOD_PERFECT) {
 		std::size_t rays = 0;
 		float degrees = M_PI / 180;
-		for (uint currentCircle = 0; currentCircle < opts.aoNumSamples; ++currentCircle) {
-			float const stepAngleRad = (opts.aoAlphaMax * degrees) / opts.aoNumSamples; // the angle of each step
+		for (uint currentCircle = 0; currentCircle < options.aoNumSamples; ++currentCircle) {
+			float const stepAngleRad = (options.aoAlphaMax * degrees) / options.aoNumSamples; // the angle of each step
 
-			float const angleRad = (stepAngleRad * currentCircle) + (opts.aoAlphaMin * degrees); // the "horizontal" angle
+			float const angleRad = (stepAngleRad * currentCircle) + (options.aoAlphaMin * degrees); // the "horizontal" angle
 
 			rays += (std::size_t) ((2.0f * M_PI * cos(angleRad)) / stepAngleRad);
 		}
 
-		std::cout << Color::red << "IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of " << opts.aoNumSamples << ". This will result in " << rays << " rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres." << Color::reset << std::endl;
+		std::cout << Color::red << "IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of " << options.aoNumSamples << ". This will result in " << rays << " rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres." << Color::reset << std::endl;
 	}
-
 	// Build BVH.
-	std::cout << Color::yellow << "Building BVH..." << Color::reset << std::flush;
-	BVH bvh(opts.bvhMethod);
+	std::cout << Color::yellow << "Building BVH…" << Color::reset << std::flush;
+	BVH bvh(options.bvhMethod);
 	{
 		Timer timer;
 		bvh.buildBVH(mesh);
-		std::cout << "took " << Color::green << timer.get_elapsed() << "ms." << Color::reset << std::endl;
+		std::cout << " took " << Color::green << timer.get_elapsed() << "ms." << Color::reset << std::endl;
 	}
-
 	std::cout << std::endl;
-	std::cout << Color::blue << "<- " << Color::red << "DEVICE SECTION" << Color::blue << " ->" << std::endl;
-
+	std::cout << Color::blue << "<- " << Color::red << "Device section" << Color::blue << " ->" << std::endl;
 	OpenCLHost::printInfo();
-
-	std::cout << Color::yellow << "Loading OpenCL kernel...\n" << Color::reset;
-
+	std::cout << Color::yellow << "Loading OpenCL kernel…\n" << Color::reset;
 	std::size_t totalTime = 0;
-
 	OpenCLHost host(rt);
-
 	// Build the kernel
 	{
 		Timer timer;
-
-		// Sort faces along triagnle order
+		// Sort faces along triangle order
 		std::vector<uint32_t> sortedFaces;
 		sortedFaces.reserve(mesh.faces.size());
 		for (size_t i = 0; i < bvh.triangles.size(); ++i) {
-			uint32_t faceID = bvh.triangles[i] * 3;
-
+			const uint32_t faceID = bvh.triangles[i] * 3;
 			sortedFaces.push_back(mesh.faces[faceID]);
 			sortedFaces.push_back(mesh.faces[faceID + 1]);
 			sortedFaces.push_back(mesh.faces[faceID + 2]);
 		}
 		mesh.faces.clear();
 		bvh.triangles.clear();
-
 		host.prepare(sortedFaces, bvh.nodes, bvh.aabbs, mesh.vertices, mesh.vnormals);
-
 		sortedFaces.clear();
 		bvh.nodes.clear();
 		bvh.aabbs.clear();
 		mesh.vertices.clear();
 		mesh.vnormals.clear();
-
 		std::size_t elapsed = timer.get_elapsed();
 		std::cout << "Building the kernel took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
-
 	std::cout << std::endl;
-	std::cout << Color::blue << "<- " << Color::red << "RENDERING SECTION" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Rendering image..." << Color::reset << std::flush;
-
+	std::cout << Color::blue << "<- " << Color::red << "Rendering section" << Color::blue << " ->" << std::endl;
+	std::cout << Color::yellow << "Rendering image…" << Color::reset << std::flush;
 	// Execute
 	{
 		Timer timer;
 		bool success = host();
-
-		if (!success)
-			std::cout << Color::red << " FAILED!" << Color::reset;
-
+		if (!success) {
+			std::cout << Color::red << " failed!" << Color::reset;
+		}
 		std::size_t elapsed = timer.get_elapsed();
 		totalTime += elapsed;
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
-
 	std::vector<float> tmp(rt.totalWidth * rt.totalHeight);
 	std::cout << std::endl;
-
 	// Load memory
 	{
 		Timer timer;
-		std::cout << Color::yellow << "Loading memory... " << Color::reset;
-		host.loadMem(tmp.data());
-
+		std::cout << Color::yellow << "Loading memory…" << Color::reset;
+		host.loadMemory(tmp.data());
 		std::size_t elapsed = timer.get_elapsed();
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
-
 	// Resize
-	std::vector<unsigned char> image(opts.width * opts.height);
+	std::vector<unsigned char> image(options.width * options.height);
 	{
 		Timer timer;
-		std::cout << Color::yellow << "Resizing image on host... " << Color::reset;
-
+		std::cout << Color::yellow << "Resizing image on host…" << Color::reset;
 		rt.resize(tmp.data(), image.data());
-
 		std::size_t elapsed = timer.get_elapsed();
 		totalTime += elapsed;
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}
-
 	std::cout << Color::yellow << "Total time (without loading memory and building the BVH): " << Color::green << totalTime << "ms" << Color::reset << std::endl;
-
 	// Write output image.
 	std::ofstream out(outImage.c_str());
-
 	if (!out.good()) {
 		std::cerr << Color::red << "Error opening output file!" << Color::reset << std::endl;
 		return 1;
 	}
-
-	out << "P5 " << opts.width << " " << opts.height << " 255\n";
-	out.write((const char*)image.data(), opts.width * opts.height);
+	out << "P5 " << options.width << " " << options.height << " 255\n";
+	out.write((const char*)image.data(), options.width * options.height);
 	out.close();
-
 	return 0;
 }

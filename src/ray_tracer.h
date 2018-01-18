@@ -22,8 +22,8 @@ class RayTracer {
 			unsigned int height;
 			float focalLength;
 			unsigned int nSuperSamples;
-			bool shading;
-			bool ambientOcclusion;
+			bool enableShading;
+			bool enableAO;
 			float aoMaxDistance;
 			unsigned int aoNumSamples;
 			Method aoMethod;
@@ -31,13 +31,13 @@ class RayTracer {
 			int aoAlphaMax;
 			BVH::Method bvhMethod;
 		};
-		RayTracer(Options _opts) :
-			opts(_opts),
-			totalWidth(_opts.width * (unsigned int) sqrt(_opts.nSuperSamples)),
-			totalHeight(_opts.height * (unsigned int) sqrt(_opts.nSuperSamples)) {
+		RayTracer(Options options) :
+			options(options),
+			totalWidth(options.width * (unsigned int) sqrt(options.nSuperSamples)),
+			totalHeight(options.height * (unsigned int) sqrt(options.nSuperSamples)) {
 		}
 		void resize(float * tmp, unsigned char * image);
-		Options opts;
-		unsigned int totalWidth;
-		unsigned int totalHeight;
+		const Options options;
+		const unsigned int totalWidth;
+		const unsigned int totalHeight;
 };
