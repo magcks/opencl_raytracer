@@ -8,7 +8,7 @@ class RayTracer {
 		// Structure with basic options for raytracer
 		// - width : image witdh
 		// - focalLength      : focal length of virtual camera
-		// - nSuperSamples  : Number of Samples !per pixel!
+		// - nSuperSamples    : Number of Samples !per pixel!
 		//                      Runtime basically explodes if you turn this too high
 		// - smoothShading    : switch to turn on/off smooth shading
 		// - ambientOcclusion : switch to turn on/off ambient occlusion
