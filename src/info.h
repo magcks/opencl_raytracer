@@ -19,8 +19,8 @@ class Info {
 		}
 		Info() : ch('.'), maxValueSize(100), extraSpace(10), spaceWidth(5) {
 		}
-		void setTitle(std::string title) {
-			title = title;
+		void setTitle(const std::string &newTitle) {
+			title = newTitle;
 		}
 		template <class T> void add(const std::string name, const T &val) {
 			attributes.push_back(std::make_pair(name, Info::toStr(val)));
