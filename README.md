@@ -8,6 +8,10 @@ mkdir build && cd $_
 cmake ..
 make -j
 ```
+## Example
+```bash
+./render ../meshes/bunny.off out.pgm
+```
 ## License
 This software is licensed under the GPL 3.0 license included as `LICENSE.md`. The authors are:
 - kdex ([@kdex](https://github.com/kdex))
