@@ -17,12 +17,12 @@ Vec3f Triangle::getAABBMax() const {
 	return max;
 }
 AABB Triangle::getAABB() const {
-	return AABB(this->getAABBMin(), this->getAABBMax());
+	return AABB(getAABBMin(), getAABBMax());
 }
 Vec3f Triangle::getNormalVector() const {
 	Vec3f n = ((*this)[1] - (*this)[0]).cross((*this)[2] - (*this)[0]);
 	return n / n.length();
 }
 uint32_t Triangle::getFaceID() const {
-	return this->faceID;
+	return faceID;
 }

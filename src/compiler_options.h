@@ -7,7 +7,7 @@ class CompilerOptions {
 		void add(std::string name, bool v) {
 			if (!v)
 				return;
-			this->store.push_back(name);
+			store.push_back(name);
 		}
 		void add(std::string name, float v) {
 			int rounded = v;
@@ -20,21 +20,21 @@ class CompilerOptions {
 			if (ssRounded.str() == ssV.str())
 				ss << ".0";
 			ss << "f";
-			this->store.push_back(ss.str());
+			store.push_back(ss.str());
 		}
 		template <typename T>
 		void add(std::string name, T v) {
 			std::stringstream ss;
 			ss << name << "=" << v;
-			this->store.push_back(ss.str());
+			store.push_back(ss.str());
 		}
 		std::string str() {
 			std::stringstream ss;
-			for (std::size_t i = 0; i < this->store.size(); ++i) {
+			for (std::size_t i = 0; i < store.size(); ++i) {
 				if (i != 0)
 					ss << " ";
 
-				ss << "-D " << this->store[i];
+				ss << "-D " << store[i];
 			}
 			return ss.str();
 		}

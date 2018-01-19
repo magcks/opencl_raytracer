@@ -44,6 +44,6 @@ inline Triangle::Triangle()
 inline Triangle::Triangle(Mesh const *mesh, unsigned int faceID)
 	: mesh(mesh), faceID(faceID) {}
 inline Vec3f const &Triangle::operator[](int index) const {
-	return this->mesh->vertices[this->mesh->faces[this->faceID * 3 + index]];
+	return mesh->vertices[mesh->faces[faceID * 3 + index]];
 }
 #pragma pack(pop)

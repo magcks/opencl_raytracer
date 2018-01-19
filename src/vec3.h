@@ -7,7 +7,7 @@ template <typename T> class Vec3 {
 	public:
 		Vec3() {
 			std::fill(v, v + 3, T(0));
-			this->fourth = (T) 0;
+			fourth = (T) 0;
 		}
 		explicit Vec3(T value) {
 			std::fill(v, v + 3, value);
@@ -68,10 +68,10 @@ template <typename T> class Vec3 {
 			return v[X] * v[X] + v[Y] * v[Y] + v[Z] * v[Z];
 		}
 		T length() const {
-			return (T) std::sqrt(this->squareLength());
+			return (T) std::sqrt(squareLength());
 		}
 		Vec3<T> normalized() const {
-			return (*this) / this->length();
+			return (*this) / length();
 		}
 		friend std::ostream &operator<<(std::ostream &os, const Vec3<T> vec) {
 			os << vec.v[X] << " " << vec.v[Y] << " " << vec.v[Z];

@@ -42,15 +42,15 @@ inline float getSurfaceArea(AABB &bb) {
 	return 2.0 * (bbWidth * bbHeight + bbHeight * bbDepth + bbDepth * bbWidth);
 }
 /*
-* Cuts the face IDs into two pieces. The method to cut it is specified by the "this->method"-char.
+* Cuts the face IDs into two pieces.
 */
 void BVH::cutFaces(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb) {
-	switch (this->method) {
+	switch (method) {
 		case BVH::Method::CUT_LONGEST_AXIS:
-			this->cutFacesLongestAxis(mesh, faceIDs, leftIDs, rightIDs, bb);
+			cutFacesLongestAxis(mesh, faceIDs, leftIDs, rightIDs, bb);
 			break;
 		case BVH::Method::SURFACE_AREA_HEURISTIC:
-			this->cutFacesSAH(mesh, faceIDs, leftIDs, rightIDs, bb);
+			cutFacesSAH(mesh, faceIDs, leftIDs, rightIDs, bb);
 			break;
 	}
 }
@@ -106,51 +106,51 @@ void BVH::buildBVH(Mesh const &mesh) {
 		faceIDs[i] = i;
 	}
 // 	std::cout << "ACTUAL SIZE: " << faceIDs.size() << std::endl;
-	this->triangles.reserve(size);
-// 	std::cout << "LIMIT: " << this->triangles.max_size() << std::endl;
-// 	this->triangles.reserve(size);
-	this->nodes = std::vector<uint32_t>(size * 2 - 1);
-	this->aabbs = std::vector<Vec3f>((size * 2 - 1) * 2);
-// 	std::cout << "LIMIT: " << this->nodes.max_size() << " WANNA HAVE: " << size * 2 - 1 << " N: " << size << std::endl;
-// 	this->nodes.reserve(size * 2 - 1);
+	triangles.reserve(size);
+// 	std::cout << "LIMIT: " << triangles.max_size() << std::endl;
+// 	triangles.reserve(size);
+	nodes = std::vector<uint32_t>(size * 2 - 1);
+	aabbs = std::vector<Vec3f>((size * 2 - 1) * 2);
+// 	std::cout << "LIMIT: " << nodes.max_size() << " WANNA HAVE: " << size * 2 - 1 << " N: " << size << std::endl;
+// 	nodes.reserve(size * 2 - 1);
 // 	std::cout << "YEAH!" << std::endl;
 	std::size_t i = 0;
 // 	std::cout << std::endl; // because of the flush
-	this->build(mesh, faceIDs, i);
+	build(mesh, faceIDs, i);
 // 	std::cout << std::endl; // because of the flush
-	this->nodes.resize(this->nodes[0]);
-	this->aabbs.resize(this->nodes[0] * 2);
+	nodes.resize(nodes[0]);
+	aabbs.resize(nodes[0] * 2);
 // 	printf("\n");
 // 	printf("NODE: %d AABB: %d\n", sizeof(Node), sizeof(AABB));
-// 	printf("X1 %f\n", (*this->nodes)[1].bb.min[0]);
+// 	printf("X1 %f\n", (*nodes)[1].bb.min[0]);
 // 	printf("UINT: %d\n", sizeof(uint32_t));
-// 	hexdump(&(*this->nodes)[0], 500);
-// 	std::cout << "SWAG!!!" << (*this->nodes)[0].node_count << std::endl;
+// 	hexdump(&(*nodes)[0], 500);
+// 	std::cout << "SWAG!!!" << (*nodes)[0].node_count << std::endl;
 }
 /*
 * Builds an node of the BVH and returns the count of nodes (incl. the current node)
 */
 unsigned int const BVH::build(const Mesh &mesh, std::vector< unsigned int > &faceIDs, std::size_t &ind) {
-// 	size_t i = this->nodes.size();
+// 	size_t i = nodes.size();
 // 	Node n;
-// 	this->nodes.push_back(n);
+// 	nodes.push_back(n);
 //
 // 	std::cout << ind << std::endl;
 // 	uint32_t n;
-// 	this->nodes.at(ind) = n;
-	uint32_t & node = this->nodes.at(ind);
+// 	nodes.at(ind) = n;
+	uint32_t & node = nodes.at(ind);
 	AABB bb;
 	if (faceIDs.size() <= /*MAX_LEAF_TRIANGLES*/1) {
-// 		node.triangles_offset = this->triangles.size() * 3;
+// 		node.triangles_offset = triangles.size() * 3;
 // 		node.triangles_length = faceIDs.size();
 		/* Push all of our triangles into the node. */
 		for (size_t i = 0; i < faceIDs.size(); ++i) {
 			Triangle tri(&mesh, faceIDs[i]);    /* Get the triangle from the mesh */
 			bb.merge(tri.getAABB());
-			this->triangles.push_back(tri.getFaceID());
+			triangles.push_back(tri.getFaceID());
 		}
-		this->aabbs.at(ind * 2) = bb.min;
-		this->aabbs.at(ind * 2 + 1) = bb.max;
+		aabbs.at(ind * 2) = bb.min;
+		aabbs.at(ind * 2 + 1) = bb.max;
 		node = 1;
 	}
 	else {
@@ -158,7 +158,7 @@ unsigned int const BVH::build(const Mesh &mesh, std::vector< unsigned int > &fac
 		leftIDs.reserve(faceIDs.size());
 		std::vector<unsigned int> rightIDs;
 		rightIDs.reserve(faceIDs.size());
-		this->cutFaces(mesh, faceIDs, leftIDs, rightIDs, bb);
+		cutFaces(mesh, faceIDs, leftIDs, rightIDs, bb);
 		if (leftIDs.size() == 0 && rightIDs.size() == 0) {
 			std::cout << "ERROR: invalid cut left/right" << std::endl;
 			std::exit(1);
@@ -171,30 +171,30 @@ unsigned int const BVH::build(const Mesh &mesh, std::vector< unsigned int > &fac
 			std::cout << "ERROR: invalid right cut" << std::endl;
 			std::exit(1);
 		}
-		this->aabbs.at(ind * 2) = bb.min;
-		this->aabbs.at(ind * 2 + 1) = bb.max;
+		aabbs.at(ind * 2) = bb.min;
+		aabbs.at(ind * 2 + 1) = bb.max;
 // 		node.triangles_offset = 0;
 // 		node.triangles_length = 0;
 		++ind;
-		node = this->build(mesh, leftIDs, ind);
+		node = build(mesh, leftIDs, ind);
 		leftIDs.clear();
 		++ind;
-		node += this->build(mesh, rightIDs, ind) + 1;
+		node += build(mesh, rightIDs, ind) + 1;
 		rightIDs.clear();
 	}
-	//std::cout << this->nodes.at(i).node_count << std::endl;
+	//std::cout << nodes.at(i).node_count << std::endl;
 	return node;
 }
 class sortByAxis {
 	public:
 		sortByAxis(const Mesh *mesh, char *axis) {
-			this->mesh = mesh;
-			this->axis = axis;
+			mesh = mesh;
+			axis = axis;
 		}
 		bool operator()(unsigned int i, unsigned int j) {
-			Triangle tri1(this->mesh, i);
-			Triangle tri2(this->mesh, j);
-			return tri1.getCentroid()[*(this->axis)] > tri2.getCentroid()[*(this->axis)];
+			Triangle tri1(mesh, i);
+			Triangle tri2(mesh, j);
+			return tri1.getCentroid()[*(axis)] > tri2.getCentroid()[*(axis)];
 		}
 	private:
 		const Mesh *mesh;

@@ -20,13 +20,13 @@ class Info {
 		Info() : ch('.'), maxValueSize(100), extraSpace(10), spaceWidth(5) {
 		}
 		void setTitle(std::string title) {
-			this->title = title;
+			title = title;
 		}
 		template <class T> void add(const std::string name, const T &val) {
-			this->attributes.push_back(std::make_pair(name, Info::toStr(val)));
+			attributes.push_back(std::make_pair(name, Info::toStr(val)));
 		}
 		void add(Info child) {
-			this->children.push_back(child);
+			children.push_back(child);
 		}
 		std::string str();
 		std::size_t getBiggestNameLength();
