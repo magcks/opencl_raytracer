@@ -4,7 +4,7 @@
 #include <iostream>
 #include "vec3.h"
 #include "mesh.h"
-void load_off_mesh(std::string const &filename, Mesh *mesh) {
+void load_off_mesh(const std::string &filename, Mesh *mesh) {
 	if (filename.empty()) {
 		throw std::invalid_argument("No filename given");
 	}
@@ -65,7 +65,7 @@ void load_off_mesh(std::string const &filename, Mesh *mesh) {
 	/* Close file stream. */
 	input.close();
 }
-void save_off_mesh(Mesh const &mesh, std::string const &filename) {
+void save_off_mesh(const Mesh &mesh, const std::string &filename) {
 	if (filename.empty()) {
 		throw std::invalid_argument("No filename given");
 	}
@@ -102,9 +102,9 @@ void compute_vertex_normals(Mesh *mesh) {
 		std::size_t ib = mesh->faces[i + 1];
 		std::size_t ic = mesh->faces[i + 2];
 		/* Face vertices. */
-		Vec3f const &a = mesh->vertices[ia];
-		Vec3f const &b = mesh->vertices[ib];
-		Vec3f const &c = mesh->vertices[ic];
+		const Vec3f &a = mesh->vertices[ia];
+		const Vec3f &b = mesh->vertices[ib];
+		const Vec3f &c = mesh->vertices[ic];
 		/* Face normal. */
 		Vec3f normal = (b - a).cross(c - a);
 		float length = normal.length();

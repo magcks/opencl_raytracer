@@ -18,8 +18,8 @@ struct Mesh {
 	std::vector<Vec3f> vnormals;
 };
 /* Loads a triangle mesh from an OFF model file. */
-void load_off_mesh(std::string const &filename, Mesh *mesh);
+void load_off_mesh(const std::string &filename, Mesh *mesh);
 /* Saves a triangle mesh to an OFF model file. */
-void save_off_mesh(Mesh const &mesh, std::string const &filename);
+void save_off_mesh(const Mesh &mesh, const std::string &filename);
 /* Computes vertex normals for the triangle mesh. */
 void compute_vertex_normals(Mesh *mesh);

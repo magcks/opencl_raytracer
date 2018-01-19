@@ -12,22 +12,22 @@ template <typename T> class Vec3 {
 		explicit Vec3(T value) {
 			std::fill(v, v + 3, value);
 		}
-		Vec3(T const &nx, T const &ny, T const &nz) {
+		Vec3(const T &nx, const T &ny, const T &nz) {
 			v[X] = nx;
 			v[Y] = ny;
 			v[Z] = nz;
 		}
-		Vec3(Vec3<T> const &src) {
+		Vec3(const Vec3<T> &src) {
 			std::copy(src.v, src.v + 3, v);
 		}
 		Vec3<T> operator=(const Vec3<T> rhs) {
 			std::copy(rhs.v, rhs.v + 3, v);
 			return *this;
 		}
-		T dot(Vec3<T> const &rhs) const {
+		T dot(const Vec3<T> &rhs) const {
 			return v[X] * rhs.v[X] + v[Y] * rhs.v[Y] + v[Z] * rhs.v[Z];
 		}
-		Vec3<T> cross(Vec3<T> const &rhs) const {
+		Vec3<T> cross(const Vec3<T> &rhs) const {
 			return Vec3<T>(
 				v[Y] * rhs.v[Z] - rhs.v[Y] * v[Z],
 				v[Z] * rhs.v[X] - rhs.v[Z] * v[X],
@@ -37,16 +37,16 @@ template <typename T> class Vec3 {
 		Vec3<T> operator+(T rhs) const {
 			return Vec3<T>(v[X] + rhs, v[Y] + rhs, v[Z] + rhs);
 		}
-		Vec3<T> operator+(Vec3<T> const &rhs) const {
+		Vec3<T> operator+(const Vec3<T> &rhs) const {
 			return Vec3<T>(v[X] + rhs.v[X], v[Y] + rhs.v[Y], v[Z] + rhs.v[Z]);
 		}
-		Vec3<T> &operator+=(Vec3<T> const &rhs) {
+		Vec3<T> &operator+=(const Vec3<T> &rhs) {
 			v[X] += rhs.v[X];
 			v[Y] += rhs.v[Y];
 			v[Z] += rhs.v[Z];
 			return *this;
 		}
-		Vec3<T> operator-(Vec3<T> const &rhs) const {
+		Vec3<T> operator-(const Vec3<T> &rhs) const {
 			return Vec3<T>(v[X] - rhs.v[X], v[Y] - rhs.v[Y], v[Z] - rhs.v[Z]);
 		}
 		Vec3<T> operator*(T rhs) const {

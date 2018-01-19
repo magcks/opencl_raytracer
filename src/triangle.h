@@ -14,7 +14,7 @@
 //     This field is also used to test whether an intersection happened.
 //     In case of failure, it is set to 0.0f.
 struct Intersection {
-	Mesh const *mesh;
+	const Mesh *mesh;
 	unsigned int faceID;
 	Vec3f bary;
 	Vec3f position;
@@ -26,7 +26,7 @@ struct Intersection {
 class Triangle {
 	public:
 		Triangle();
-		Triangle(Mesh const *mesh, unsigned int faceID);
+		Triangle(const Mesh *mesh, unsigned int faceID);
 		Vec3f getCentroid() const;
 		Vec3f getNormalVector() const;
 		Vec3f getAABBMin() const;
@@ -36,14 +36,14 @@ class Triangle {
 		Vec3f const &operator[](int index) const;
 		Vec3f &operator[](int index);
 	private:
-		Mesh const *mesh;
+		const Mesh *mesh;
 		unsigned int faceID;
 };
 inline Triangle::Triangle()
 	: mesh(NULL) {}
-inline Triangle::Triangle(Mesh const *mesh, unsigned int faceID)
+inline Triangle::Triangle(const Mesh *mesh, unsigned int faceID)
 	: mesh(mesh), faceID(faceID) {}
-inline Vec3f const &Triangle::operator[](int index) const {
+inline const Vec3f &Triangle::operator[](int index) const {
 	return mesh->vertices[mesh->faces[faceID * 3 + index]];
 }
 #pragma pack(pop)

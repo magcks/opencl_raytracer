@@ -9,7 +9,7 @@
 /*
 * Generates the bounding box and the bounding box of the centroids of the triangles.
 */
-inline void getBBAndBBCentroid(Mesh const &mesh, std::vector<unsigned int> &faceIDs, AABB &bb, AABB &bbCentroid) {
+inline void getBBAndBBCentroid(const Mesh &mesh, std::vector<unsigned int> &faceIDs, AABB &bb, AABB &bbCentroid) {
 	for (size_t i = 0; i < faceIDs.size(); ++i) {
 		/* Get the triangle from the mesh */
 		Triangle tri(&mesh, faceIDs[i]);
@@ -24,7 +24,7 @@ inline void getBBAndBBCentroid(Mesh const &mesh, std::vector<unsigned int> &face
 /*
 * Generates the bounding box.
 */
-inline void getBB(Mesh const &mesh, std::vector<unsigned int> &faceIDs, AABB &bb) {
+inline void getBB(const Mesh &mesh, std::vector<unsigned int> &faceIDs, AABB &bb) {
 	for (size_t i = 0; i < faceIDs.size(); ++i) {
 		/* Get the triangle from the mesh */
 		Triangle tri(&mesh, faceIDs[i]);
@@ -96,7 +96,7 @@ void BVH::cutFacesLongestAxis(const Mesh &mesh, std::vector<unsigned int> &faceI
 /*
 * The "bootstrap" for building the BVH.
 */
-void BVH::buildBVH(Mesh const &mesh) {
+void BVH::buildBVH(const Mesh &mesh) {
 	std::size_t size = mesh.faces.size() / 3;
 	std::vector<uint32_t> faceIDs(size);
 // 	std::cout << "LIMIT: " << faceIDs.max_size() << std::endl;
