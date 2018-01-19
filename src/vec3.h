@@ -64,13 +64,13 @@ template <typename T> class Vec3 {
 		Vec3<T> operator-(T rhs) const {
 			return Vec3<T>(v[X] - rhs, v[Y] - rhs, v[Z] - rhs);
 		}
-		T squareLength(void) const {
+		T squareLength() const {
 			return v[X] * v[X] + v[Y] * v[Y] + v[Z] * v[Z];
 		}
-		T length(void) const {
+		T length() const {
 			return (T) std::sqrt(this->squareLength());
 		}
-		Vec3<T> normalized(void) const {
+		Vec3<T> normalized() const {
 			return (*this) / this->length();
 		}
 		friend std::ostream &operator<<(std::ostream &os, const Vec3<T> vec) {

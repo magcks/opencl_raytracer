@@ -4,26 +4,26 @@
 // Simple CPU clock timer.
 class Timer {
 	public:
-		Timer(void);
-		void reset(void);
-		static std::size_t now(void);
-		std::size_t get_elapsed(void) const;
+		Timer();
+		void reset();
+		static std::size_t now();
+		std::size_t get_elapsed() const;
 	private:
 		std::size_t start;
 };
-inline Timer::Timer(void) {
-	this->reset();
+inline Timer::Timer() {
+	reset();
 }
-inline void Timer::reset(void) {
-	this->start = Timer::now();
+inline void Timer::reset() {
+	start = Timer::now();
 }
-inline std::size_t Timer::now(void) {
+inline std::size_t Timer::now() {
 	struct timeval now;
 	gettimeofday(&now, NULL);
 	return (now.tv_sec * 1000000u + now.tv_usec) / 1.e3;
 //	return static_cast<std::size_t>(std::clock()) * 1000
 //         / static_cast<std::size_t>(CLOCKS_PER_SEC);
 }
-inline std::size_t Timer::get_elapsed(void) const {
+inline std::size_t Timer::get_elapsed() const {
 	return Timer::now() - start;
 }
