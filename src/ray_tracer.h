@@ -16,7 +16,7 @@ class RayTracer {
 		//                      Should be about 10% of the max scene dimension
 		// - aoNumSamples     : Number of samples for each ambient occlusion
 		//                      evaluation
-		enum Method { AO_METHOD_PERFECT, AO_METHOD_RANDOM };
+		enum class AmbientOcclusionMethod { PERFECT, RANDOM };
 		struct Options {
 			unsigned int width;
 			unsigned int height;
@@ -26,7 +26,7 @@ class RayTracer {
 			bool enableAO;
 			float aoMaxDistance;
 			unsigned int aoNumSamples;
-			Method aoMethod;
+			AmbientOcclusionMethod aoMethod;
 			int aoAlphaMin;
 			int aoAlphaMax;
 			BVH::Method bvhMethod;
@@ -36,7 +36,7 @@ class RayTracer {
 			totalWidth(options.width * (unsigned int) sqrt(options.nSuperSamples)),
 			totalHeight(options.height * (unsigned int) sqrt(options.nSuperSamples)) {
 		}
-		void resize(float * tmp, unsigned char * image);
+		void resize(float *tmp, unsigned char *image);
 		const Options options;
 		const unsigned int totalWidth;
 		const unsigned int totalHeight;

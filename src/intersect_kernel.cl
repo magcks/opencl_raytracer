@@ -2,6 +2,8 @@
 #define M_PI 3.14159265358979323846f
 #define M_PI_2 1.57079632679489661923f
 #endif
+#define AO_METHOD_PERFECT 0
+#define AO_METHOD_RANDOM 1
 typedef struct Intersection {
 // 	Mesh const *mesh;
 	uint faceID;
@@ -210,8 +212,6 @@ inline bool scene_intersect(__global const uint *nodes, __global const float4 *a
 	}
 	return isIntersecting;
 }
-#define AO_METHOD_PERFECT 0
-#define AO_METHOD_RANDOM 1
 inline float ambient_occlusion(__global const uint *nodes, __global const float4 *aabbs, const __global uint *faces, const __global float4 *vertices, const __global float4 *vnormals, float4 point, float4 normal, int index) {
 	const float4 p = point + (normal * (1.0f / 100000.0f));
 	uint hits = 0;

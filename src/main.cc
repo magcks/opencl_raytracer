@@ -25,10 +25,10 @@ int main(int argc, const char *argv[]) {
 	options.enableAO = true;
 	options.aoMaxDistance = 0.2f;
 	options.aoNumSamples = 3;
-	options.aoMethod = /*RayTracer::AO_METHOD_PERFECT*/RayTracer::AO_METHOD_PERFECT;
+	options.aoMethod = RayTracer::AmbientOcclusionMethod::PERFECT;
 	options.aoAlphaMin = 4; // degrees!!!
 	options.aoAlphaMax = 90; // you shouldn't change this
-	options.bvhMethod = BVH::METHOD_CUT_LONGEST_AXIS; // or: BVH::METHOD_SAH
+	options.bvhMethod = BVH::Method::CUT_LONGEST_AXIS;
 	std::string inMesh(argv[1]);
 	std::string outImage(argv[2]);
 	// Read input mesh.
@@ -40,17 +40,16 @@ int main(int argc, const char *argv[]) {
 	std::cout << Color::blue << "- " << Color::yellow << "Vertices: " << Color::red << mesh.vertices.size() << Color::yellow << std::endl;
 	std::cout << Color::blue << "- " << Color::yellow << "Triangles: " << Color::red << (mesh.faces.size() / 3) << Color::reset << std::endl;
 	RayTracer rt(options);
-	if (options.aoMethod == RayTracer::AO_METHOD_PERFECT) {
+	if (options.aoMethod == RayTracer::AmbientOcclusionMethod::PERFECT) {
 		std::size_t rays = 0;
-		float degrees = M_PI / 180;
+		const float degrees = M_PI / 180;
 		for (uint currentCircle = 0; currentCircle < options.aoNumSamples; ++currentCircle) {
-			float const stepAngleRad = (options.aoAlphaMax * degrees) / options.aoNumSamples; // the angle of each step
-
-			float const angleRad = (stepAngleRad * currentCircle) + (options.aoAlphaMin * degrees); // the "horizontal" angle
-
+			// the angle of each step
+			const float stepAngleRad = (options.aoAlphaMax * degrees) / options.aoNumSamples;
+			// the "horizontal" angle
+			const float angleRad = (stepAngleRad * currentCircle) + (options.aoAlphaMin * degrees);
 			rays += (std::size_t) ((2.0f * M_PI * cos(angleRad)) / stepAngleRad);
 		}
-
 		std::cout << Color::red << "IMPORTANT INFO: You've enabled 'Perfect AO hemispheres'. You have entered a circle count of " << options.aoNumSamples << ". This will result in " << rays << " rays. Note that the Perfect AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres." << Color::reset << std::endl;
 	}
 	// Build BVH.

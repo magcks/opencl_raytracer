@@ -8,21 +8,20 @@
 class AABB {
 	public:
 		// Creates an inverted bounding box such that min/max operations work.
-		AABB(void);
+		AABB();
 		// Creates and initializes a bounding box.
-		AABB(Vec3f const &mi, Vec3f const &ma) : min(mi), max(ma) {}
+		AABB(const Vec3f &min, const Vec3f &max) : min(min), max(max) {}
 		// Merge the AABB with another AABB.
-		void merge(AABB const &aabb);
+		void merge(const AABB &aabb);
 		// Merge the AABB with another vector.
-		void merge(Vec3f const &vec);
+		void merge(const Vec3f &vec);
 		// Returns the longest axis, 0: x-axis, 1: y-axis, 2: z-axis.
-		char getLongestAxis(void) const;
+		char getLongestAxis() const;
 		// Returns true iff point is inside the AABB.
-		bool inside(Vec3f const &point) const;
+		bool inside(const Vec3f &point) const;
 		Vec3f min;
 		Vec3f max;
 };
-inline AABB::AABB(void)
+inline AABB::AABB()
 	: min(Vec3f(std::numeric_limits<float>::max()))
-	, max(Vec3f(-std::numeric_limits<float>::max())) {
-}
+	, max(Vec3f(-std::numeric_limits<float>::max())) {}

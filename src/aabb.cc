@@ -1,36 +1,32 @@
-#include "aabb.h"
 #include <iostream>
-
-void AABB::merge(AABB const &bb) {
+#include "aabb.h"
+void AABB::merge(const AABB &bb) {
 	for (int i = 0; i < 3; ++i) {
-		this->min[i] = std::min(this->min[i], bb.min[i]);
-		this->max[i] = std::max(this->max[i], bb.max[i]);
+		min[i] = std::min(min[i], bb.min[i]);
+		max[i] = std::max(max[i], bb.max[i]);
 	}
 }
-
-void AABB::merge(Vec3f const &vec) {
+void AABB::merge(const Vec3f &vec) {
 	for (int i = 0; i < 3; ++i) {
-		this->min[i] = std::min(this->min[i], vec[i]);
-		this->max[i] = std::max(this->max[i], vec[i]);
+		min[i] = std::min(min[i], vec[i]);
+		max[i] = std::max(max[i], vec[i]);
 	}
 }
-
 char AABB::getLongestAxis() const {
-	Vec3f diff = this->max - this->min;
-
-	if (diff[0] >= diff[1] && diff[0] >= diff[2])
+	Vec3f diff = max - min;
+	if (diff[0] >= diff[1] && diff[0] >= diff[2]) {
 		return 0;
-
-	if (diff[1] >= diff[0] && diff[1] >= diff[2])
+	}
+	if (diff[1] >= diff[0] && diff[1] >= diff[2]) {
 		return 1;
-
+	}
 	return 2;
 }
-
-bool AABB::inside(Vec3f const &point) const {
-	for (int i = 0; i < 3; ++i)
-		if (point[i] > this->max[i] || point[i] < this->min[i])
+bool AABB::inside(const Vec3f &point) const {
+	for (int i = 0; i < 3; ++i) {
+		if (point[i] > max[i] || point[i] < min[i]) {
 			return false;
-
+		}
+	}
 	return true;
 }

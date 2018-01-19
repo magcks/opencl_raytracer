@@ -94,7 +94,7 @@ void OpenCLHost::prepare(const std::vector<uint32_t> &faces, const std::vector<u
 	co.add("AO_ENABLE", this->rt.options.enableAO);
 	co.add("AO_MAX_DISTANCE", this->rt.options.aoMaxDistance);
 	co.add("AO_NUM_SAMPLES", this->rt.options.aoNumSamples);
-	co.add("AO_METHOD", (unsigned int) this->rt.options.aoMethod);
+	co.add("AO_METHOD", (std::size_t) this->rt.options.aoMethod);
 	co.add("AO_ALPHA_MIN", this->rt.options.aoAlphaMin);
 	co.add("AO_ALPHA_MAX", this->rt.options.aoAlphaMax);
 	std::string options(co.str());

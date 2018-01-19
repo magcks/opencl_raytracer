@@ -7,13 +7,13 @@
 // Bounding Volume Hierarchy (BVH) Interface.
 class BVH {
 	public:
-		enum Method { METHOD_CUT_LONGEST_AXIS = 0, METHOD_SAH = 2 };
-		BVH(void);
-		BVH(char method);
-		~BVH(void);
+		enum class Method { CUT_LONGEST_AXIS, SURFACE_AREA_HEURISTIC };
+		BVH();
+		BVH(BVH::Method method);
+		~BVH();
 		// Constructs the BVH from the given mesh.
 		void buildBVH(Mesh const &mesh);
-		unsigned int const build(Mesh const &mesh, std::vector<unsigned int> &faceIDs, unsigned int &ind);
+		unsigned int const build(Mesh const &mesh, std::vector<unsigned int> &faceIDs, std::size_t &ind);
 		std::vector<uint32_t> triangles;
 		std::vector<uint32_t> nodes;
 		std::vector<Vec3f> aabbs;
@@ -22,8 +22,8 @@ class BVH {
 		void cutFacesLongestAxis(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb);
 		void cutFacesMedianCut(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb);
 		void cutFacesSAH(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb);
-		char method;
+		BVH::Method method;
 };
-inline BVH::BVH(void) : method(BVH::METHOD_CUT_LONGEST_AXIS) {}
-inline BVH::BVH(char _method) : method(_method) {}
+inline BVH::BVH() : method(BVH::Method::CUT_LONGEST_AXIS) {}
+inline BVH::BVH(Method method) : method(method) {}
 inline BVH::~BVH() {}
