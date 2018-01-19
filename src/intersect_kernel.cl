@@ -2,10 +2,9 @@
 #define M_PI 3.14159265358979323846f
 #define M_PI_2 1.57079632679489661923f
 #endif
-#define AO_METHOD_PERFECT 0
+#define AO_METHOD_UNIFORM 0
 #define AO_METHOD_RANDOM 1
 typedef struct Intersection {
-// 	Mesh const *mesh;
 	uint faceID;
 	float4 bary;
 	float4 position;
@@ -216,7 +215,7 @@ inline float ambient_occlusion(__global const uint *nodes, __global const float4
 	const float4 p = point + (normal * (1.0f / 100000.0f));
 	uint hits = 0;
 	float maxDistance = AO_MAX_DISTANCE;
-#if AO_METHOD == AO_METHOD_PERFECT
+#if AO_METHOD == AO_METHOD_UNIFORM
 	uint n = 0;
 	const uint circleCount = AO_NUM_SAMPLES;
 	const float degrees = M_PI / 180;

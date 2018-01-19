@@ -16,7 +16,7 @@ class RayTracer {
 		//                      Should be about 10% of the max scene dimension
 		// - aoNumSamples     : Number of samples for each ambient occlusion
 		//                      evaluation
-		enum class AmbientOcclusionMethod { PERFECT, RANDOM };
+		enum class AmbientOcclusionMethod { UNIFORM, RANDOM };
 		struct Options {
 			unsigned int width;
 			unsigned int height;
