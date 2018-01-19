@@ -15,14 +15,15 @@
 #define periodColor Color::blue
 class Info {
 	public:
-		Info(char _ch, std::size_t _maxValueSize, std::size_t _extraSpace, std::size_t _spaceWidth) : ch(_ch), maxValueSize(_maxValueSize), extraSpace(_extraSpace), spaceWidth(_spaceWidth) {
+		Info(std::size_t _maxValueSize, std::size_t _extraSpace, std::size_t _spaceWidth) : maxValueSize(_maxValueSize), extraSpace(_extraSpace), spaceWidth(_spaceWidth) {
 		}
-		Info() : ch('.'), maxValueSize(100), extraSpace(10), spaceWidth(5) {
+		Info() : maxValueSize(100), extraSpace(10), spaceWidth(5) {
 		}
 		void setTitle(const std::string &newTitle) {
 			title = newTitle;
 		}
-		template <class T> void add(const std::string name, const T &val) {
+		template <class T>
+		void add(const std::string name, const T &val) {
 			attributes.push_back(std::make_pair(name, Info::toStr(val)));
 		}
 		void add(Info child) {
@@ -58,7 +59,6 @@ class Info {
 			return ss.str();
 		}
 	private:
-		char ch;
 		std::size_t maxValueSize;
 		std::size_t extraSpace;
 		std::size_t spaceWidth;

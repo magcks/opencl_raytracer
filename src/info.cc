@@ -11,10 +11,11 @@ std::string Info::str() {
 		nameSs << leftSideColor << attributes[i].first << Color::reset << ":";
 		std::string name = nameSs.str();
 		std::string val = attributes[i].second;
-		name.resize(resize, ch);
+		name.resize(resize, '.');
 		Info::trim(val);
-		if (maxValueSize > 0 && val.size() > maxValueSize)
-			val = val.substr(0, maxValueSize - 3) + "...";
+		if (maxValueSize > 0 && val.size() > maxValueSize) {
+			val = val.substr(0, maxValueSize - 3) + "…";
+		}
 		ss << name << rightSideColor << val << Color::reset << std::endl;
 	}
 	if (children.size() > 0)
