@@ -18,39 +18,39 @@ typedef struct HemisphereSampler {
 } HemisphereSampler;
 // Smits ray-box intersection test using slabs
 // http://www.cs.utah.edu/~awilliam/box/box.pdf
-inline bool aabb_intersect(__global const float4 *bb, float4 rp, float4 rd, float maxDistance) {
+inline bool aabb_intersect(__global const float4 *bb, float4 raypos, float4 raydir, float maxDistance) {
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
-	float div = 1.0f / rd.x;
+	float div = 1.0f / raydir.x;
 	if (div >= 0) {
-		tmin = (bb[0].x - rp.x) * div;
-		tmax = (bb[1].x - rp.x) * div;
+		tmin = (bb[0].x - raypos.x) * div;
+		tmax = (bb[1].x - raypos.x) * div;
 	}
 	else {
-		tmin = (bb[1].x - rp.x) * div;
-		tmax = (bb[0].x - rp.x) * div;
+		tmin = (bb[1].x - raypos.x) * div;
+		tmax = (bb[0].x - raypos.x) * div;
 	}
-	div = 1 / rd.y;
+	div = 1 / raydir.y;
 	if (div >= 0) {
-		tymin = (bb[0].y - rp.y) * div;
-		tymax = (bb[1].y - rp.y) * div;
+		tymin = (bb[0].y - raypos.y) * div;
+		tymax = (bb[1].y - raypos.y) * div;
 	}
 	else {
-		tymin = (bb[1].y - rp.y) * div;
-		tymax = (bb[0].y - rp.y) * div;
+		tymin = (bb[1].y - raypos.y) * div;
+		tymax = (bb[0].y - raypos.y) * div;
 	}
 	if (tmin > tymax || tymin > tmax) {
 		return false;
 	}
 	tmin = max(tmin, tymin);
 	tmax = min(tmax, tymax);
-	div = 1 / rd.z;
+	div = 1 / raydir.z;
 	if (div >= 0) {
-		tzmin = (bb[0].z - rp.z) * div;
-		tzmax = (bb[1].z - rp.z) * div;
+		tzmin = (bb[0].z - raypos.z) * div;
+		tzmax = (bb[1].z - raypos.z) * div;
 	}
 	else {
-		tzmin = (bb[1].z - rp.z) * div;
-		tzmax = (bb[0].z - rp.z) * div;
+		tzmin = (bb[1].z - raypos.z) * div;
+		tzmax = (bb[0].z - raypos.z) * div;
 	}
 	if (tmin > tzmax || tzmin > tmax) {
 		return false;
@@ -62,15 +62,15 @@ inline bool aabb_intersect(__global const float4 *bb, float4 rp, float4 rd, floa
 /*
 * Src: http://geomalgorithms.com/a06-_intersect-2.html
 */
-inline bool triangle_intersect(float4 ta, float4 tb, float4 tc, uint faceID, float4 rp, float4 rd, Intersection *intersection) {
+inline bool triangle_intersect(float4 ta, float4 tb, float4 tc, uint faceID, float4 raypos, float4 raydir, Intersection *intersection) {
 	const float EPSILON2 = 0.000001f;
 	// Get triangle edge vectors and plane normal
 	const float4 u = tb - ta;
 	const float4 v = tc - ta;
 	const float4 n = cross(u, v);
-	const float4 w0 = rp - ta;
+	const float4 w0 = raypos - ta;
 	const float a = -dot(n, w0);
-	const float b = dot(n, rd);
+	const float b = dot(n, raydir);
 	// Check if ray is parallel to triangle plane.
 	if (fabs(b) < EPSILON2) {
 		return false;
@@ -82,7 +82,7 @@ inline bool triangle_intersect(float4 ta, float4 tb, float4 tc, uint faceID, flo
 		return false;
 	}
 	// Intersect point of ray and plane
-	const float4 intersectionPoint = rp + r * rd;
+	const float4 intersectionPoint = raypos + r * raydir;
 	// Is I inside T?
 	const float uu = dot(u, u);
 	const float uv = dot(u, v);
@@ -103,26 +103,26 @@ inline bool triangle_intersect(float4 ta, float4 tb, float4 tc, uint faceID, flo
 		return false;
 	}
 	// Intersection looks good. Fill result.
-	const float distance = length(intersectionPoint - rp);
+	const float distance = length(intersectionPoint - raypos);
 	if (intersection->distance > distance) {
 		intersection->faceID = faceID;
-		intersection->bary = (float4) (1.0f - s - t, s, t, 0);
+		intersection->bary = (float4)(1.0f - s - t, s, t, 0);
 		intersection->position = intersectionPoint;
 		intersection->distance = distance;
 	}
 	return true;
 }
-inline float shade(const float4 rd, const float4 normal) {
-	return min(1.0f, fabs(dot((normal), rd)));
+inline float shade(const float4 raydir, const float4 normal) {
+	return clamp(-dot(normal, raydir), 0.f, 1.f);
 }
-inline float4 get_smooth_normal(const __global uint *faces, const __global float4 *vertices, const __global float4 *vnormals, Intersection intersection) {
+inline float4 get_smooth_normal(const __global uint *faces, const __global float4 *vertices, const __global float4 *normals, Intersection intersection) {
 	const uint v0 = faces[intersection.faceID + 0];
 	const uint v1 = faces[intersection.faceID + 1];
 	const uint v2 = faces[intersection.faceID + 2];
 	return normalize(
-		vnormals[v0] * (float4) (intersection.bary.x) +
-		vnormals[v1] * (float4) (intersection.bary.y) +
-		vnormals[v2] * (float4) (intersection.bary.z)
+		normals[v0] * (float4)(intersection.bary.x) +
+		normals[v1] * (float4)(intersection.bary.y) +
+		normals[v2] * (float4)(intersection.bary.z)
 	);
 }
 inline unsigned int random_int(uint4 *ran) {
@@ -181,12 +181,12 @@ inline float4 hemisphere_sampler_sample(HemisphereSampler *hemi) {
 	float4 direction = hemi->basisX * xs + hemi->basisY * ys + hemi->basisZ * zs;
 	return normalize(direction);
 }
-inline bool scene_intersect(__global const uint *nodes, __global const float4 *aabbs, const __global uint *faces, const __global float4 *vertices, const __global float4 *vnormals, float4 rp, float4 rd, Intersection *intersection, float maxDistance) {
+inline bool scene_intersect(__global const uint *nodes, __global const float4 *aabbs, const __global uint *faces, const __global float4 *vertices, const __global float4 *normals, float4 raypos, float4 raydir, Intersection *intersection, float maxDistance) {
 	bool isIntersecting = false;
 	uint triIndex = 0;
 	for (uint i = 0; i < nodes[0];) {
 		uint const nodeCount = nodes[i];
-		if (!aabb_intersect(aabbs + (i << 1), rp, rd, maxDistance)) {
+		if (!aabb_intersect(aabbs + (i << 1), raypos, raydir, maxDistance)) {
 			// Skip this node and all its children
 			triIndex += (nodeCount + 1) >> 1;
 			i += nodeCount;
@@ -200,8 +200,8 @@ inline bool scene_intersect(__global const uint *nodes, __global const float4 *a
 					vertices[faces[faceID + 1]],
 					vertices[faces[faceID + 2]],
 					faceID,
-					rp,
-					rd,
+					raypos,
+					raydir,
 					intersection
 				);
 				++triIndex;
@@ -211,7 +211,7 @@ inline bool scene_intersect(__global const uint *nodes, __global const float4 *a
 	}
 	return isIntersecting;
 }
-inline float ambient_occlusion(__global const uint *nodes, __global const float4 *aabbs, const __global uint *faces, const __global float4 *vertices, const __global float4 *vnormals, float4 point, float4 normal, int index) {
+inline float ambient_occlusion(__global const uint *nodes, __global const float4 *aabbs, const __global uint *faces, const __global float4 *vertices, const __global float4 *normals, float4 point, float4 normal, int index) {
 	const float4 p = point + (normal * (1.0f / 100000.0f));
 	uint hits = 0;
 	float maxDistance = AO_MAX_DISTANCE;
@@ -244,10 +244,10 @@ inline float ambient_occlusion(__global const uint *nodes, __global const float4
 			const float xs = sin(theta) * cospi(phi);
 			const float ys = cos(theta);
 			const float zs = sin(theta) * sinpi(phi);
-			const float4 rd = basisX * xs + basisY * ys + basisZ * zs; // is normalized
+			const float4 raydir = basisX * xs + basisY * ys + basisZ * zs; // is normalized
 			Intersection intersection;
 			++n;
-			if (scene_intersect(nodes, aabbs, faces, vertices, vnormals, p, rd, &intersection, maxDistance)) {
+			if (scene_intersect(nodes, aabbs, faces, vertices, normals, p, raydir, &intersection, maxDistance)) {
 				++hits;
 			}
 		}
@@ -260,13 +260,13 @@ inline float ambient_occlusion(__global const uint *nodes, __global const float4
 	// intersect normal
 	Intersection intersection;
 	++n;
-	if (scene_intersect(nodes, aabbs, faces, vertices, vnormals, p, normal, &intersection, maxDistance)) {
+	if (scene_intersect(nodes, aabbs, faces, vertices, normals, p, normal, &intersection, maxDistance)) {
 		++hits;
 	}
 	for (uint i = 0; i < n; ++i) {
-		const float4 rd = hemisphere_sampler_sample(&hemi);
+		const float4 raydir = hemisphere_sampler_sample(&hemi);
 		Intersection intersection;
-		if (!scene_intersect(nodes, aabbs, faces, vertices, vnormals, p, rd, &intersection, maxDistance)) {
+		if (!scene_intersect(nodes, aabbs, faces, vertices, normals, p, raydir, &intersection, maxDistance)) {
 			continue;
 		}
 		++hits;
@@ -274,15 +274,15 @@ inline float ambient_occlusion(__global const uint *nodes, __global const float4
 	return 1.0f - ((float) hits / (float) n);
 #endif
 }
-__kernel void intersect(__global const uint *faces, __global const uint *nodes, __global const float4 *aabbs, __global const float4 *vertices, __global const float4 *vnormals, __global float *image) {
+__kernel void intersect(__global const uint *faces, __global const uint *nodes, __global const float4 *aabbs, __global const float4 *vertices, __global const float4 *normals, __global float *image) {
 	const uint x = get_global_id(0);
 	const uint y = get_global_id(1);
 	const uint index = y * WIDTH + x;
 	const int2 pos = (int2) (x, y);
 	// calculate the ray
-	const float4 cameraPosition = (float4) (0.0f, 0.0f, 2.0f, 0.0f);
+	const float4 cameraPosition = (float4)(0.0f, 0.0f, 2.0f, 0.0f);
 	const float a = FOCAL_LENGTH * max(WIDTH, HEIGHT);
-	const float4 rd = normalize((float4) (
+	const float4 raydir = normalize((float4)(
 		((float) x + 0.5f) / a - WIDTH / (2.0f * a),
 		-(((float) y + 0.5f) / a - HEIGHT / (2.0f * a)),
 		-1.0f,
@@ -291,18 +291,18 @@ __kernel void intersect(__global const uint *faces, __global const uint *nodes, 
 	const float maxDistance = 100000.0f;
 	Intersection intersection;
 	intersection.distance = INFINITY;
-	bool isIntersecting = scene_intersect(nodes, aabbs, faces, vertices, vnormals, cameraPosition, rd, &intersection, maxDistance);
+	bool isIntersecting = scene_intersect(nodes, aabbs, faces, vertices, normals, cameraPosition, raydir, &intersection, maxDistance);
 	float value = 1.0f;
 	if (!isIntersecting) {
 		value = 0.0f;
 	}
 	else {
-		const float4 normal = get_smooth_normal(faces, vertices, vnormals, intersection);
+		const float4 normal = get_smooth_normal(faces, vertices, normals, intersection);
 #ifdef SHADING_ENABLE
-		value = shade(rd, normal);
+		value = shade(raydir, normal);
 #endif
 #if defined(AO_ENABLE) && AO_NUM_SAMPLES > 0
-		value *= ambient_occlusion(nodes, aabbs, faces, vertices, vnormals, intersection.position, normal, index);
+		value *= ambient_occlusion(nodes, aabbs, faces, vertices, normals, intersection.position, normal, index);
 #endif
 	}
 	image[index] = value;
