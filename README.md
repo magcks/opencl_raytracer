@@ -1,5 +1,5 @@
 # OpenCL Raytracer
-An OpenCL raytracer that renders OFF models.
+An OpenCL raytracer that renders triangle meshes in OFF format.
 ## Build instructions
 ```bash
 git clone https://github.com/magcks/opencl_raytracer
