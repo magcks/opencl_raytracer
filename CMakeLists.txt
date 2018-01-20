@@ -48,10 +48,10 @@ add_executable(render
 	src/bvh.cc
 	src/color.cc
 	src/info.cc
-	src/main.cc
 	src/mesh.cc
 	src/opencl_host.cc
 	src/ray_tracer.cc
+	src/render.cc
 	src/triangle.cc
 )
 if(OpenCL_FOUND)
