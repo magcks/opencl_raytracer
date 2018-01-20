@@ -17,7 +17,6 @@ set(COMMON_CXX_FLAGS
 	-Wall\
 	-Wcast-align\
 	-Wextra\
-	-Wfloat-equal\
 	-Wmissing-declarations\
 	-Woverloaded-virtual\
 	-Wredundant-decls\

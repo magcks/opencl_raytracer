@@ -94,7 +94,7 @@ void save_off_mesh(const Mesh &mesh, const std::string &filename) {
 }
 void compute_vertex_normals(Mesh *mesh) {
 	mesh->vnormals.clear();
-	mesh->vnormals.resize(mesh->vertices.size(), Vec3f(0.0f, 0.0f, 0.0f));
+	mesh->vnormals.resize(mesh->vertices.size(), Vec3f(0, 0, 0));
 	std::size_t num_zero_face_normals = 0;
 	for (std::size_t i = 0; i < mesh->faces.size(); i += 3) {
 		/* Face vertex indices. */
@@ -109,7 +109,7 @@ void compute_vertex_normals(Mesh *mesh) {
 		Vec3f normal = (b - a).cross(c - a);
 		float length = normal.length();
 		/* Calculate vertex normal by averaging area-weighted face normals. */
-		if (length == 0.0f) {
+		if (length == 0) {
 			num_zero_face_normals += 1;
 		}
 		else {
@@ -122,7 +122,7 @@ void compute_vertex_normals(Mesh *mesh) {
 	std::size_t num_zero_vertex_normals = 0;
 	for (std::size_t i = 0; i < mesh->vnormals.size(); ++i) {
 		float length = mesh->vnormals[i].length();
-		if (length > 0.0f) {
+		if (length > 0) {
 			mesh->vnormals[i] /= length;
 		}
 		else {
