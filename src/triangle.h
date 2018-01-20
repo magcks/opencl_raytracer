@@ -1,25 +1,7 @@
 #pragma once
-#include <CL/cl.h>
 #include "vec3.h"
 #include "aabb.h"
-#include "ray.h"
 #include "mesh.h"
-// Representation of a mesh/ray intersection.
-//
-// - mesh    : mesh that was intersected
-// - faceID  : ID of the triangle that was intersected
-// - bary    : barycentric coordinates of the intersection
-// - position: The position of the intersection point
-// - distance: The distance from the ray origin to the intersection point.
-//     This field is also used to test whether an intersection happened.
-//     In case of failure, it is set to 0.0f.
-struct Intersection {
-	const Mesh *mesh;
-	unsigned int faceID;
-	Vec3f bary;
-	Vec3f position;
-	float distance;
-};
 // Representation of a triangle which contains an intersection test
 // and a few convenience functions.
 #pragma pack(push, 1)

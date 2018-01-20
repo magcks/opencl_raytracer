@@ -2,7 +2,6 @@
 #include <vector>
 #include "mesh.h"
 #include "triangle.h"
-#include "ray.h"
 #include "aabb.h"
 // Bounding Volume Hierarchy (BVH) Interface.
 class BVH {
