@@ -9,9 +9,9 @@
 	<p>Our renderer also comes with an <em colored>OpenMP</em> implementation, just in case that the latter didn't work out for you. This implementation doesn't seem as fast as the <em colored>OpenCL</em> one, but we've also seen exceptions — so just give it a try.</p>
 	<h2>Surface Area Heuristic</h2>
 	<p>Since the <span term>Median Cut</span> method was painfully slow and the <span term>Cut Longest Axis</span> method didn't seem to be the fastest of its kind either, we decided to implement the <span term>Surface Area Heuristic (SAH)</span> method referenced in an earlier lab. You can switch between these two methods by rewriting the corresponding line in <em colored>main.cc</em> to either of the following options:<br/><br />
-	<div code>BVH bvh(BVH::METHOD_CUT_LONGEST_AXIS);</div>
+	<div code>BVH bvh(BVH::Method::CUT_LONGEST_AXIS);</div>
 	or
-	<div code>BVH bvh(BVH::METHOD_SAH);</div>
+	<div code>BVH bvh(BVH::Method::SURFACE_AREA_HEURISTIC);</div>
 	<p>Note that we do not support <span term>Median Cut</span> anymore (it didn't seem to have any advantages over any of the other methods whatsoever). By using <span term>Cut Longest Axis</span>, you will barely need any time to build a usable BVH (your rendering process will take a while, though). We recommend using the <span term>Surface Area Heuristic (SAH)</span> method which might take about 10 minutes on a decent computer in order to generate one of the most efficient binary trees that we could possibly traverse when raytracing the image.</p>
 	<h2>Uniform Hemisphere Scattering</h2>
 	<p>One capital issue with the given renderer was, without any question, that in order to create rays with the provided <em colored>hemisphere sampler</em>, you were forced to make use of pseudorandom floats to reach an acceptable degree of spherical scattering.</p>
