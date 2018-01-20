@@ -1,0 +1,15 @@
+sudo: required
+language: cpp
+compiler:
+  - clang
+  - gcc
+arch:
+  packages:
+    # pacman packages
+    - cmake
+    - ocl-icd
+    - opencl-headers
+  script:
+   - ".travis/build.sh"
+script:
+  - "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"

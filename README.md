@@ -1,5 +1,6 @@
 # OpenCL Raytracer
 [![Build Status](https://travis-ci.org/magcks/opencl_raytracer.svg?branch=master)](https://travis-ci.org/magcks/opencl_raytracer)
+
 An OpenCL raytracer that renders triangle meshes in OFF format.
 ## Build instructions
 ```bash

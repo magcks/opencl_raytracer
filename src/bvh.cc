@@ -188,8 +188,8 @@ unsigned int BVH::build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, st
 class sortByAxis {
 	public:
 		sortByAxis(const Mesh *mesh, char *axis) {
-			mesh = mesh;
-			axis = axis;
+			this->mesh = mesh;
+			this->axis = axis;
 		}
 		bool operator()(unsigned int i, unsigned int j) {
 			Triangle tri1(mesh, i);
