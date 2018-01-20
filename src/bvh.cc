@@ -130,7 +130,7 @@ void BVH::buildBVH(const Mesh &mesh) {
 /*
 * Builds an node of the BVH and returns the count of nodes (incl. the current node)
 */
-unsigned int const BVH::build(const Mesh &mesh, std::vector< unsigned int > &faceIDs, std::size_t &ind) {
+unsigned int BVH::build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::size_t &ind) {
 // 	size_t i = nodes.size();
 // 	Node n;
 // 	nodes.push_back(n);

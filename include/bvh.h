@@ -11,8 +11,8 @@ class BVH {
 		BVH(BVH::Method method);
 		~BVH();
 		// Constructs the BVH from the given mesh.
-		void buildBVH(Mesh const &mesh);
-		unsigned int const build(Mesh const &mesh, std::vector<unsigned int> &faceIDs, std::size_t &ind);
+		void buildBVH(const Mesh &mesh);
+		unsigned int build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::size_t &ind);
 		std::vector<uint32_t> triangles;
 		std::vector<uint32_t> nodes;
 		std::vector<Vec3f> aabbs;
