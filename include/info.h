@@ -5,14 +5,14 @@
 #include <algorithm>
 #include <vector>
 #include "color.h"
-#define leftSideColor Color::yellow
-#define rightSideColor Color::green
-#define starColor Color::yellow
-#define titleColor Color::red
-#define headingColor Color::blue
+#define leftSideColor Color::YELLOW
+#define rightSideColor Color::GREEN
+#define starColor Color::YELLOW
+#define titleColor Color::RED
+#define headingColor Color::BLUE
 // TODO:
-#define colonColor Color::white
-#define periodColor Color::blue
+#define colonColor Color::WHITE
+#define periodColor Color::BLUE
 class Info {
 	public:
 		Info(std::size_t _maxValueSize, std::size_t _extraSpace, std::size_t _spaceWidth) : maxValueSize(_maxValueSize), extraSpace(_extraSpace), spaceWidth(_spaceWidth) {

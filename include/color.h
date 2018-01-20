@@ -1,13 +1,12 @@
 #pragma once
 #include <string>
-class Color {
-	public:
-		static const std::string reset;
-		static const std::string red;
-		static const std::string green;
-		static const std::string yellow;
-		static const std::string blue;
-		static const std::string purple;
-		static const std::string cyan;
-		static const std::string white;
+struct Color {
+	static const std::string RESET;
+	static const std::string RED;
+	static const std::string GREEN;
+	static const std::string YELLOW;
+	static const std::string BLUE;
+	static const std::string PURPLE;
+	static const std::string CYAN;
+	static const std::string WHITE;
 };

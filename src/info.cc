@@ -4,18 +4,18 @@ std::string Info::str() {
 	std::stringstream ss;
 	std::string spaces = "";
 	spaces.resize(spaceWidth, ' ');
-	ss << starColor << "*** " << titleColor << title << starColor << " ***" << Color::reset << std::endl;
-	ss << headingColor << getTitleLine(8) << Color::reset << std::endl;
+	ss << starColor << "*** " << titleColor << title << starColor << " ***" << Color::RESET << std::endl;
+	ss << headingColor << getTitleLine(8) << Color::RESET << std::endl;
 	for (std::size_t i = 0; i < attributes.size(); ++i) {
 		std::stringstream nameSs;
-		nameSs << leftSideColor << attributes[i].first << Color::reset << ":";
+		nameSs << leftSideColor << attributes[i].first << Color::RESET << ":";
 		std::string name = nameSs.str();
 		std::string val = attributes[i].second;
 		name.resize(resize, '.');
 		if (maxValueSize > 0 && val.size() > maxValueSize) {
 			val = val.substr(0, maxValueSize - 3) + "…";
 		}
-		ss << name << rightSideColor << val << Color::reset << std::endl;
+		ss << name << rightSideColor << val << Color::RESET << std::endl;
 	}
 	if (children.size() > 0)
 		ss << std::endl;

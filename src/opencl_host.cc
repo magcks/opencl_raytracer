@@ -18,11 +18,11 @@ OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 GPU_FOUND:
 
 	std::string deviceName = device.getInfo<CL_DEVICE_NAME>();
-	std::cout << Color::red << "Using Device \"" << deviceName << "\"." << Color::reset << std::endl;
+	std::cout << Color::RED << "Using Device \"" << deviceName << "\"." << Color::RESET << std::endl;
 	context = cl::Context(std::vector<cl::Device>{ device });
 	cl::Program::Sources sources;
-	std::cout << Color::blue << "<- " << Color::red << "OpenCL log section" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
+	std::cout << Color::BLUE << "<- " << Color::RED << "OpenCL log section" << Color::BLUE << " ->" << std::endl;
+	std::cout << Color::YELLOW << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
 
 	// load kernel source
 	std::ifstream input(INTERSECT_KERNEL_CL, std::ios_base::binary);

@@ -53,13 +53,13 @@ struct Options : RayTracer::Options {
 int main(int argc, const char **argv) {
 	Options options(argc, argv);
 	// Read input mesh.
-	std::cout << Color::blue << "<- " << Color::red << "BVH section" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Reading input mesh…" << std::endl;
+	std::cout << Color::BLUE << "<- " << Color::RED << "BVH section" << Color::BLUE << " ->" << std::endl;
+	std::cout << Color::YELLOW << "Reading input mesh…" << std::endl;
 	Mesh mesh;
 	load_off_mesh(options.in, &mesh);
 	compute_vertex_normals(&mesh);
-	std::cout << Color::blue << "- " << Color::yellow << "Vertices: " << Color::red << mesh.vertices.size() << Color::yellow << std::endl;
-	std::cout << Color::blue << "- " << Color::yellow << "Triangles: " << Color::red << (mesh.faces.size() / 3) << Color::reset << std::endl;
+	std::cout << Color::BLUE << "- " << Color::YELLOW << "Vertices: " << Color::RED << mesh.vertices.size() << Color::YELLOW << std::endl;
+	std::cout << Color::BLUE << "- " << Color::YELLOW << "Triangles: " << Color::RED << (mesh.faces.size() / 3) << Color::RESET << std::endl;
 	RayTracer rt(options);
 	if (options.aoMethod == RayTracer::AmbientOcclusionMethod::UNIFORM) {
 		std::size_t rays = 0;
@@ -71,20 +71,20 @@ int main(int argc, const char **argv) {
 			const float angleRad = (stepAngleRad * currentCircle) + (options.aoAlphaMin * degrees);
 			rays += (std::size_t) ((2.0f * M_PI * cos(angleRad)) / stepAngleRad);
 		}
-		std::cout << Color::red << "IMPORTANT INFO: You've enabled 'Uniform AO hemispheres'. You have entered a circle count of " << options.aoNumSamples << ". This will result in " << rays << " rays. Note that the Uniform AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres." << Color::reset << std::endl;
+		std::cout << Color::RED << "IMPORTANT INFO: You've enabled 'Uniform AO hemispheres'. You have entered a circle count of " << options.aoNumSamples << ". This will result in " << rays << " rays. Note that the Uniform AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres." << Color::RESET << std::endl;
 	}
 	// Build BVH.
-	std::cout << Color::yellow << "Building BVH…" << Color::reset << std::flush;
+	std::cout << Color::YELLOW << "Building BVH…" << Color::RESET << std::flush;
 	BVH bvh(options.bvhMethod);
 	{
 		Timer timer;
 		bvh.buildBVH(mesh);
-		std::cout << " took " << Color::green << timer.get_elapsed() << "ms." << Color::reset << std::endl;
+		std::cout << " took " << Color::GREEN << timer.get_elapsed() << "ms." << Color::RESET << std::endl;
 	}
 	std::cout << std::endl;
-	std::cout << Color::blue << "<- " << Color::red << "Device section" << Color::blue << " ->" << std::endl;
+	std::cout << Color::BLUE << "<- " << Color::RED << "Device section" << Color::BLUE << " ->" << std::endl;
 	OpenCLHost::printInfo();
-	std::cout << Color::yellow << "Loading OpenCL kernel…\n" << Color::reset;
+	std::cout << Color::YELLOW << "Loading OpenCL kernel…\n" << Color::RESET;
 	std::size_t totalTime = 0;
 	OpenCLHost host(rt);
 	// Build the kernel
@@ -108,47 +108,47 @@ int main(int argc, const char **argv) {
 		mesh.vertices.clear();
 		mesh.vnormals.clear();
 		std::size_t elapsed = timer.get_elapsed();
-		std::cout << "Building the kernel took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
+		std::cout << "Building the kernel took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
 	std::cout << std::endl;
-	std::cout << Color::blue << "<- " << Color::red << "Rendering section" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Rendering image…" << Color::reset << std::flush;
+	std::cout << Color::BLUE << "<- " << Color::RED << "Rendering section" << Color::BLUE << " ->" << std::endl;
+	std::cout << Color::YELLOW << "Rendering image…" << Color::RESET << std::flush;
 	// Execute
 	{
 		Timer timer;
 		bool success = host();
 		if (!success) {
-			std::cout << Color::red << " failed!" << Color::reset;
+			std::cout << Color::RED << " failed!" << Color::RESET;
 		}
 		std::size_t elapsed = timer.get_elapsed();
 		totalTime += elapsed;
-		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
+		std::cout << " took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
 	std::vector<float> tmp(rt.totalWidth * rt.totalHeight);
 	std::cout << std::endl;
 	// Load memory
 	{
 		Timer timer;
-		std::cout << Color::yellow << "Loading memory…" << Color::reset;
+		std::cout << Color::YELLOW << "Loading memory…" << Color::RESET;
 		host.download(tmp.data());
 		std::size_t elapsed = timer.get_elapsed();
-		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
+		std::cout << " took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
 	// Resize
 	std::vector<unsigned char> image(options.width * options.height);
 	{
 		Timer timer;
-		std::cout << Color::yellow << "Resizing image on host…" << Color::reset;
+		std::cout << Color::YELLOW << "Resizing image on host…" << Color::RESET;
 		rt.resize(tmp.data(), image.data());
 		std::size_t elapsed = timer.get_elapsed();
 		totalTime += elapsed;
-		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
+		std::cout << " took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
-	std::cout << Color::yellow << "Total time (without loading memory and building the BVH): " << Color::green << totalTime << "ms" << Color::reset << std::endl;
+	std::cout << Color::YELLOW << "Total time (without loading memory and building the BVH): " << Color::GREEN << totalTime << "ms" << Color::RESET << std::endl;
 	// Write output image.
 	std::ofstream out(options.out.c_str());
 	if (!out.good()) {
-		std::cerr << Color::red << "Error opening output file!" << Color::reset << std::endl;
+		std::cerr << Color::RED << "Error opening output file!" << Color::RESET << std::endl;
 		return 1;
 	}
 	out << "P5 " << options.width << " " << options.height << " 255\n";
