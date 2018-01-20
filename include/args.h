@@ -173,14 +173,14 @@ public:
 			if (!*curopt) inc();
 		} else if (type == OPT) {
 			++curopt;
-			i = opts[*curopt];
+			i = opts[static_cast<unsigned char>(*curopt)];
 			if (i == invalid) err(E_INVALID);
 			++curopt;
 			val_read = false;
 			if (!*curopt) inc();
 		} else if (!val_read) {
 			// last value was not read: assume boolean -> no need for additional dash
-			i = opts[*curopt];
+			i = opts[static_cast<unsigned char>(*curopt)];
 			if (i == invalid) err(E_INVALID);
 			++curopt;
 			if (!*curopt) inc();
