@@ -11,9 +11,6 @@
 #include "vec3.h"
 class OpenCLHost {
 	public:
-		static int deviceTypePriority(const cl_device_type &type);
-		// TODO: not tested (because I only have one device...)
-		static bool devicePriority(const cl::Device a, const cl::Device b);
 		static std::string deviceType(const cl_device_type &type) {
 			switch (type) {
 				case CL_DEVICE_TYPE_CPU:
@@ -133,16 +130,16 @@ class OpenCLHost {
 					return "UNKNOWN";
 			}
 		}
-		// Constructor
-		OpenCLHost(const RayTracer &rt) : rt(rt) {}
-		void prepare(const std::vector<uint32_t> &faces, const std::vector<uint32_t> &nodes, const std::vector<Vec3f> &aabbs, const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &vnormals);
+		OpenCLHost(const RayTracer &rt);
+		void upload(const std::vector<uint32_t> &faces, const std::vector<uint32_t> &nodes, const std::vector<Vec3f> &aabbs, const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &vnormals);
 		bool operator()();
-		void loadMemory(float *image);
+		void download(float *image);
 		static void printInfo();
 	private:
 		const RayTracer &rt;
 		cl::Program program;
 		cl::CommandQueue queue;
+		cl::Context context;
 		// Buffers
 		cl::Buffer facesBuffer;
 		cl::Buffer nodesBuffer;

@@ -101,7 +101,7 @@ int main(int argc, const char **argv) {
 		}
 		mesh.faces.clear();
 		bvh.triangles.clear();
-		host.prepare(sortedFaces, bvh.nodes, bvh.aabbs, mesh.vertices, mesh.vnormals);
+		host.upload(sortedFaces, bvh.nodes, bvh.aabbs, mesh.vertices, mesh.vnormals);
 		sortedFaces.clear();
 		bvh.nodes.clear();
 		bvh.aabbs.clear();
@@ -130,7 +130,7 @@ int main(int argc, const char **argv) {
 	{
 		Timer timer;
 		std::cout << Color::yellow << "Loading memory…" << Color::reset;
-		host.loadMemory(tmp.data());
+		host.download(tmp.data());
 		std::size_t elapsed = timer.get_elapsed();
 		std::cout << " took " << Color::green << elapsed << "ms." << Color::reset << std::endl;
 	}

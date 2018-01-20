@@ -1,4 +1,62 @@
 #include "opencl_host.h"
+#include <stdexcept>
+OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
+	std::vector<cl::Platform> platforms;
+	cl::Platform::get(&platforms);
+	cl::Device device;
+	bool have_dev = false;
+	for (std::size_t i = 0; i < platforms.size(); ++i) {
+		std::vector<cl::Device> devices;
+		platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices);
+		for (std::size_t j = 0; j < devices.size(); ++j) {
+			device = devices[j];
+			have_dev = true;
+			if (device.getInfo<CL_DEVICE_AVAILABLE>() && device.getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU) goto GPU_FOUND;
+		}
+	}
+	if (!have_dev) throw std::runtime_error("No device found");
+GPU_FOUND:
+
+	std::string deviceName = device.getInfo<CL_DEVICE_NAME>();
+	std::cout << Color::red << "Using Device \"" << deviceName << "\"." << Color::reset << std::endl;
+	context = cl::Context(std::vector<cl::Device>{ device });
+	cl::Program::Sources sources;
+	std::cout << Color::blue << "<- " << Color::red << "OpenCL log section" << Color::blue << " ->" << std::endl;
+	std::cout << Color::yellow << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
+
+	// load kernel source
+	std::ifstream input(INTERSECT_KERNEL_CL, std::ios_base::binary);
+	input.seekg(0, std::ios_base::end);
+	std::vector<char> kernel_src(input.tellg());
+	input.seekg(0, std::ios_base::beg);
+	input.read(kernel_src.data(), kernel_src.size());
+	sources.push_back(std::pair<const char *, size_t>(kernel_src.data(), kernel_src.size()));
+
+	// kernel parameters
+	CompilerOptions co;
+	co.add("WIDTH", rt.totalWidth);
+	co.add("HEIGHT", rt.totalHeight);
+	co.add("FOCAL_LENGTH", rt.options.focalLength);
+	co.add("NSUPERSAMPLES", rt.options.nSuperSamples);
+	co.add("SHADING_ENABLE", rt.options.enableShading);
+	co.add("AO_ENABLE", rt.options.enableAO);
+	co.add("AO_MAX_DISTANCE", rt.options.aoMaxDistance);
+	co.add("AO_NUM_SAMPLES", rt.options.aoNumSamples);
+	co.add("AO_METHOD", (std::size_t) rt.options.aoMethod);
+	co.add("AO_ALPHA_MIN", rt.options.aoAlphaMin);
+	co.add("AO_ALPHA_MAX", rt.options.aoAlphaMax);
+	std::string options(co.str());
+	std::cout << "Build options: " << options << std::endl;
+	std::cout << "Compiling kernel…" << std::endl;
+	program = cl::Program(context, sources);
+	try {
+		check(program.build(std::vector<cl::Device>{ device }, options.c_str()));
+	} catch (...) {
+		std::cout << "Build log: " << std::endl << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl << std::endl;
+	}
+
+	queue = cl::CommandQueue(context, device);
+}
 void OpenCLHost::printInfo() {
 	std::vector<cl::Platform> allPlatforms;
 	std::vector<cl::Device> allDevices;
@@ -24,7 +82,7 @@ void OpenCLHost::printInfo() {
 			std::stringstream deviceTitle;
 			deviceTitle << "Device #" << j;
 			deviceInfo.setTitle(deviceTitle.str());
-// 			deviceInfo.add("Extensions", device.getInfo<CL_DEVICE_EXTENSIONS>());
+			deviceInfo.add("Extensions", device.getInfo<CL_DEVICE_EXTENSIONS>());
 			deviceInfo.add("Max work item sizes", Info::vec2str(device.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>()));
 			deviceInfo.add("Name", device.getInfo<CL_DEVICE_NAME>());
 			deviceInfo.add("Profile", device.getInfo<CL_DEVICE_PROFILE>());
@@ -42,94 +100,23 @@ void OpenCLHost::printInfo() {
 	}
 	std::cout << std::endl;
 	std::cout << info.str();
-	if (allPlatforms.size() == 0) {
-		std::cout << Color::red << "Error: No platforms found." << Color::reset << std::endl;
-	}
-	if (allDevices.size() == 0) {
-		std::cout << Color::red << "Error: No devices found." << Color::reset << std::endl;
-	}
 }
-void OpenCLHost::prepare(const std::vector<uint32_t> &faces, const std::vector<uint32_t> &nodes, const std::vector<Vec3f> &aabbs, const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &vnormals) {
-	cl_int err;
-	std::vector<cl::Platform> allPlatforms;
-	cl::Platform::get(&allPlatforms);
-	std::vector<cl::Device> allDevices;
-	for (std::size_t i = 0; i < allPlatforms.size(); ++i) {
-		cl::Platform platform = allPlatforms[i];
-		std::vector<cl::Device> platformDevices;
-		platform.getDevices(CL_DEVICE_TYPE_ALL, &platformDevices);
-		for (std::size_t j = 0; j < platformDevices.size(); ++j) {
-			cl::Device device = platformDevices[j];
-			allDevices.push_back(device);
-		}
-	}
-	if (allDevices.size() == 0) {
-		return;
-	}
-	// Sort devices
-	std::sort(allDevices.begin(), allDevices.end(), devicePriority);
-	cl::Device device = allDevices[0];
-	std::string deviceName = device.getInfo<CL_DEVICE_NAME>();
-	Info::trim(deviceName);
-	std::cout << Color::red << "Using Device \"" << deviceName << "\"." << Color::reset << std::endl;
-	std::vector<cl::Device> devices;
-	devices.push_back(device);
-	cl::Context context(devices);
-	cl::Program::Sources sources;
-	std::cout << Color::blue << "<- " << Color::red << "OpenCL log section" << Color::blue << " ->" << std::endl;
-	std::cout << Color::yellow << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
-	std::ifstream input(INTERSECT_KERNEL_CL, std::ios_base::binary);
-	input.seekg(0, std::ios_base::end);
-	std::vector<char> kernel_src(input.tellg());
-	input.seekg(0, std::ios_base::beg);
-	input.read(kernel_src.data(), kernel_src.size());
-	sources.push_back(std::pair<const char *, size_t>(kernel_src.data(), kernel_src.size()));
-	// kernel parameters
-	CompilerOptions co;
-	co.add("WIDTH", rt.totalWidth);
-	co.add("HEIGHT", rt.totalHeight);
-	co.add("FOCAL_LENGTH", rt.options.focalLength);
-	co.add("NSUPERSAMPLES", rt.options.nSuperSamples);
-	co.add("SHADING_ENABLE", rt.options.enableShading);
-	co.add("AO_ENABLE", rt.options.enableAO);
-	co.add("AO_MAX_DISTANCE", rt.options.aoMaxDistance);
-	co.add("AO_NUM_SAMPLES", rt.options.aoNumSamples);
-	co.add("AO_METHOD", (std::size_t) rt.options.aoMethod);
-	co.add("AO_ALPHA_MIN", rt.options.aoAlphaMin);
-	co.add("AO_ALPHA_MAX", rt.options.aoAlphaMax);
-	std::string options(co.str());
-	std::cout << "Build options: " << options << std::endl;
-	std::cout << "Compiling kernel…" << std::endl;
-	program = cl::Program(context, sources);
-	err = program.build(devices, options.c_str());
-	std::cout << "Build log: " << std::endl << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl << std::endl;
-	check(err);
+void OpenCLHost::upload(const std::vector<uint32_t> &faces, const std::vector<uint32_t> &nodes, const std::vector<Vec3f> &aabbs, const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &vnormals) {
 	std::size_t mem = 0;
-	mem += faces.size() * sizeof(uint32_t);
-	mem += nodes.size() * sizeof(uint32_t);
-	mem += aabbs.size() * sizeof(Vec3f);
-	mem += vertices.size() * sizeof(Vec3f);
-	mem += vnormals.size() * sizeof(Vec3f);
-	mem += rt.totalWidth * rt.totalHeight * sizeof(float);
-	std::cout << "Requesting " << mem << " Bytes of memory." << std::endl;
-	facesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, faces.size() * sizeof(uint32_t));
-	nodesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, nodes.size() * sizeof(uint32_t));
-	aabbsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, aabbs.size() * sizeof(Vec3f));
-	verticesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, vertices.size() * sizeof(Vec3f));
-	vnormalsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, vnormals.size() * sizeof(Vec3f));
-// 	imageBuffer = cl::Image2D(context, CL_MEM_WRITE_ONLY, cl::ImageFormat(CL_INTENSITY, CL_FLOAT), rt.totalWidth, rt.totalHeight, 0, NULL, NULL);
-	imageBuffer = cl::Buffer(context, CL_MEM_WRITE_ONLY, rt.totalWidth * rt.totalHeight * sizeof(float)); // TODO: INFO: This is READ_WRITE, not WRITE_ONLY!
-	queue = cl::CommandQueue(context, device);
+	facesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem += faces.size() * sizeof(uint32_t));
+	nodesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem +=nodes.size() * sizeof(uint32_t));
+	aabbsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem +=aabbs.size() * sizeof(Vec3f));
+	verticesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem +=vertices.size() * sizeof(Vec3f));
+	vnormalsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem +=vnormals.size() * sizeof(Vec3f));
+	imageBuffer = cl::Buffer(context, CL_MEM_WRITE_ONLY, mem +=rt.totalWidth * rt.totalHeight * sizeof(float));
+	std::cout << "Requested " << mem / 1024 << " kB of memory." << std::endl;
 	// Write data to GPU
-	check(queue.enqueueWriteBuffer(facesBuffer, CL_TRUE, 0, faces.size() * sizeof(uint32_t), &(faces[0])));
-	check(queue.enqueueWriteBuffer(nodesBuffer, CL_TRUE, 0, nodes.size() * sizeof(uint32_t), &(nodes[0])));
-	check(queue.enqueueWriteBuffer(aabbsBuffer, CL_TRUE, 0, aabbs.size() * sizeof(Vec3f), &(aabbs[0])));
-	check(queue.enqueueWriteBuffer(verticesBuffer, CL_TRUE, 0, vertices.size() * sizeof(Vec3f), &(vertices[0])));
-	check(queue.enqueueWriteBuffer(vnormalsBuffer, CL_TRUE, 0, vnormals.size() * sizeof(Vec3f), &(vnormals[0])));
+	check(queue.enqueueWriteBuffer(facesBuffer, CL_TRUE, 0, faces.size() * sizeof(uint32_t), faces.data()));
+	check(queue.enqueueWriteBuffer(nodesBuffer, CL_TRUE, 0, nodes.size() * sizeof(uint32_t), nodes.data()));
+	check(queue.enqueueWriteBuffer(aabbsBuffer, CL_TRUE, 0, aabbs.size() * sizeof(Vec3f), aabbs.data()));
+	check(queue.enqueueWriteBuffer(verticesBuffer, CL_TRUE, 0, vertices.size() * sizeof(Vec3f), vertices.data()));
+	check(queue.enqueueWriteBuffer(vnormalsBuffer, CL_TRUE, 0, vnormals.size() * sizeof(Vec3f), vnormals.data()));
 	check(queue.finish());
-}
-inline uint32_t div_up(uint32_t n, uint32_t d) {
-	return (n + d - 1) / d;
 }
 bool OpenCLHost::operator()() {
 	cl::Kernel kernel(program, "intersect");
@@ -144,27 +131,7 @@ bool OpenCLHost::operator()() {
 	check(err = queue.finish());
 	return err == CL_SUCCESS;
 }
-void OpenCLHost::loadMemory(float *image) {
+void OpenCLHost::download(float *image) {
 	queue.enqueueReadBuffer(imageBuffer, CL_TRUE, 0, rt.totalWidth * rt.totalHeight * sizeof(float), image);
 	check(queue.finish());
-}
-int OpenCLHost::deviceTypePriority(const cl_device_type &type) {
-	switch (type) {
-		case CL_DEVICE_TYPE_ACCELERATOR:
-			return 2;
-		case CL_DEVICE_TYPE_GPU:
-			return 1;
-		case CL_DEVICE_TYPE_CPU:
-			return 0;
-	}
-	return -1;
-}
-// TODO: untested (because I only have one device…)
-bool OpenCLHost::devicePriority(const cl::Device a, const cl::Device b) {
-	cl_device_type aType = a.getInfo<CL_DEVICE_TYPE>();
-	cl_device_type bType = b.getInfo<CL_DEVICE_TYPE>();
-	if (!a.getInfo<CL_DEVICE_AVAILABLE>()) {
-		return false;
-	}
-	return deviceTypePriority(aType) > deviceTypePriority(bType);
 }

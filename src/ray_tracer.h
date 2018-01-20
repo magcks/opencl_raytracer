@@ -6,7 +6,7 @@
 class RayTracer {
 	public:
 		// Structure with basic options for raytracer
-		// - width : image witdh
+		// - width            : image witdh
 		// - focalLength      : focal length of virtual camera
 		// - nSuperSamples    : Number of Samples !per pixel!
 		//                      Runtime basically explodes if you turn this too high
