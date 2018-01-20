@@ -13,7 +13,7 @@
 	or
 	<div code>BVH bvh(BVH::METHOD_SAH);</div>
 	<p>Note that we do not support <span term>Median Cut</span> anymore (it didn't seem to have any advantages over any of the other methods whatsoever). By using <span term>Cut Longest Axis</span>, you will barely need any time to build a usable BVH (your rendering process will take a while, though). We recommend using the <span term>Surface Area Heuristic (SAH)</span> method which might take about 10 minutes on a decent computer in order to generate one of the most efficient binary trees that we could possibly traverse when raytracing the image.</p>
-	<h2>Perfect Hemisphere Scattering</h2>
+	<h2>Uniform Hemisphere Scattering</h2>
 	<p>One capital issue with the given renderer was, without any question, that in order to create rays with the provided <em colored>hemisphere sampler</em>, you were forced to make use of pseudorandom floats to reach an acceptable degree of spherical scattering.</p>
 	<p>Not only that lots of computation time is repeatedly wasted — the randomization process will generate different results every time you render the scene. Also, we found that hemispheres created by this manner tend to be weighted towards the hemisphere's normal as can be seen in the following illustration.</p>
 	<div illustration>
@@ -31,13 +31,13 @@
 	</div>
 	<p>The algorithm we developed for creating this hemisphere will be more precise for higher counts of rings. These rings are <em colored>evenly</em> distributed between <em colored>α<sub>min</sub></em> and <em colored>α<sub>max</sub></em> such that <em>lower rings will cast more rays and higher rings will cast less</em>. This is due to the fact that, in a hemisphere, lower rings will always have a greater radius than higher rings (and are thus <em>more important</em> to be considered when casting rays).</p>
 	<p>There are two possible configurations for the parameter <em colored>opts.aoMethod</em><em>:</em></p><br/>
-	<div code>RayTracer::AO_METHOD_PERFECT</div>
+	<div code>RayTracer::AO_METHOD_UNIFORM</div>
 	or
 	<div code>RayTracer::AO_METHOD_RANDOM</div>
-	<p>If you choose to set it to <em colored>RayTracer::AO_METHOD_PERFECT</em>, a <span term>Perfect Hemisphere</span> will be created (this is generally faster and more precise). You can also use <em colored>RayTracer::AO_METHOD_RANDOM</em> which will create a randomized hemisphere, just in case you'd like to measure the difference.</p>
-	<p><a name="aoNumSamples"></a>Please beware that with <span term>Perfect Hemispheres</span> enabled, the exemplary option</p>
+	<p>If you choose to set it to <em colored>RayTracer::AO_METHOD_UNIFORM</em>, a <span term>Uniform Hemisphere</span> will be created (this is generally faster and more precise). You can also use <em colored>RayTracer::AO_METHOD_RANDOM</em> which will create a randomized hemisphere, just in case you'd like to measure the difference.</p>
+	<p><a name="aoNumSamples"></a>Please beware that with <span term>Uniform Hemispheres</span> enabled, the exemplary option</p>
 	<div code>opts.aoNumSamples = 15;</div>
-	<p>changes its meaning and behavior. Now, instead of casting <em colored>15 rays per hemisphere</em> (which is the default behavior for <em colored>RayTracer::AO_METHOD_RANDOM</em>), your <span term>Perfect Hemisphere</span> will contain <em colored>15 layers of rings</em> that will contain an enormous amount of rays (here: approximately <em colored>570 rays for 15 rings</em>). When comparing this renderer to other renderers, please make sure that both cast an equal amount of rays (don't panic, we'll print the the amount of rays and circles for you when you use this option).</p>
+	<p>changes its meaning and behavior. Now, instead of casting <em colored>15 rays per hemisphere</em> (which is the default behavior for <em colored>RayTracer::AO_METHOD_RANDOM</em>), your <span term>Uniform Hemisphere</span> will contain <em colored>15 layers of rings</em> that will contain an enormous amount of rays (here: approximately <em colored>570 rays for 15 rings</em>). When comparing this renderer to other renderers, please make sure that both cast an equal amount of rays (don't panic, we'll print the the amount of rays and circles for you when you use this option).</p>
 	<p> Needless to say, every ring casts the rays in multiple angles of <em colored>θ</em> (with <em colored>θ</em> being individual for every ring but equal within the same ring). Higher adjustments for the number of rings (<em colored>aoNumSamples</em>) will generate astonishingly accurate hemispheres. The following image shows a hemisphere (<em>with</em> and <em>without</em> the corresponding rays) created with a ring count of <em>'only'</em> <em colored>30 layers</em>.</p>
 	<div illustration>
 		<img src="img/hemisphere-30.png">
