@@ -2,6 +2,8 @@
 [![Build Status](https://travis-ci.org/magcks/opencl_raytracer.svg?branch=master)](https://travis-ci.org/magcks/opencl_raytracer)
 
 An OpenCL raytracer that renders triangle meshes in OFF format.
+
+This raytracer was a programming task at the course `Foundations of Computer Science III` at TU Darmstadt and was later used for a programming competition in the same course with the objective to speed up the existing CPU implementation. We received the second place with our OpenCL implementation.
 ## Build instructions
 ```bash
 git clone https://github.com/magcks/opencl_raytracer
