@@ -51,6 +51,7 @@ add_executable(render
 	src/opencl_host.cc
 	src/ray_tracer.cc
 	src/render.cc
+	src/timer.cc
 	src/triangle.cc
 )
 if(OpenCL_FOUND)

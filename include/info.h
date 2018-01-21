@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -9,6 +10,8 @@ class Info {
 		}
 		Info() : maxValueSize(100), extraSpace(3) {
 		}
+		static std::size_t measure(const std::string &jobDescription, const std::function<bool ()> &job, bool synchronous = false);
+		static std::string formatTime(const std::size_t elapsed);
 		void setTitle(const std::string &newTitle) {
 			title = newTitle;
 		}
@@ -39,6 +42,20 @@ class Info {
 			ss << val;
 			return ss.str();
 		}
+		/* TODO: Should probably be private */
+		struct Color {
+			static const std::string LEFT;
+			static const std::string RIGHT;
+			static const std::string STAR;
+			static const std::string TITLE;
+			static const std::string HEADING;
+			static const std::string COLON;
+			static const std::string PERIOD;
+			static const std::string NORMAL;
+			static const std::string HIGHLIGHT;
+			static const std::string SECTION;
+			static const std::string WARNING;
+		};
 	private:
 		const std::size_t maxValueSize;
 		const std::size_t extraSpace;
@@ -54,13 +71,4 @@ class Info {
 			}
 			return result;
 		}
-		struct Color {
-			static const std::string LEFT;
-			static const std::string RIGHT;
-			static const std::string STAR;
-			static const std::string TITLE;
-			static const std::string HEADING;
-			static const std::string COLON;
-			static const std::string PERIOD;
-		};
 };

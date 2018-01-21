@@ -52,14 +52,24 @@ DEVICE_FOUND:
 	co.add("AO_ALPHA_MIN", rt.options.aoAlphaMin);
 	co.add("AO_ALPHA_MAX", rt.options.aoAlphaMax);
 	std::string options(co.str());
-	std::cout << "Build options: " << options << std::endl;
-	std::cout << "Compiling kernel…" << std::endl;
-	program = cl::Program(context, sources);
-	try {
-		check(program.build(std::vector<cl::Device>{ device }, options.c_str()));
-	} catch (...) {
-		std::cout << "Build log: " << std::endl << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl << std::endl;
-	}
+	Info::measure("Compiling kernel", [&] {
+		std::cout << "Build options: " << options << std::endl;
+		program = cl::Program(context, sources);
+		cl_int status;
+		status = program.build(std::vector<cl::Device>{ device }, options.c_str());
+		if (status != CL_SUCCESS) {
+			std::cerr
+				<< std::endl
+				<< "Build log:"
+				<< std::endl << std::endl
+				<< Color::RED
+				<< program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device)
+				<< Color::RESET
+				<< std::endl;
+			return false;
+		}
+		return true;
+	}, true);
 
 	queue = cl::CommandQueue(context, device);
 }

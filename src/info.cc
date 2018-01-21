@@ -1,10 +1,50 @@
 #include <cstdlib>
+#include <iostream>
 #include "info.h"
+#include "timer.h"
 const std::string Info::Color::LEFT = ::Color::WHITE;
 const std::string Info::Color::RIGHT = ::Color::GREEN;
 const std::string Info::Color::STAR = ::Color::YELLOW;
 const std::string Info::Color::TITLE = ::Color::GREEN;
 const std::string Info::Color::HEADING = ::Color::BLUE;
+const std::string Info::Color::NORMAL = ::Color::WHITE;
+const std::string Info::Color::HIGHLIGHT = ::Color::YELLOW;
+const std::string Info::Color::SECTION = ::Color::GREEN;
+const std::string Info::Color::WARNING = ::Color::RED;
+std::size_t Info::measure(const std::string &jobDescription, const std::function<bool ()> &job, bool synchronous) {
+	std::stringstream ss;
+	std::ostream &os = synchronous ? ss : std::cout;
+	Timer timer;
+	std::stringstream status;
+	status << Color::NORMAL << jobDescription << "…" << ::Color::RESET;
+	os << status.str();
+	if (synchronous) {
+		std::cout << status.str() << " (1/2)" << std::endl;;
+	}
+	const bool success = job();
+	std::size_t elapsed = timer.get_elapsed();
+	if (!success) {
+		os << Info::Color::WARNING << " failed!" << ::Color::RESET;
+	}
+	os
+		<< (synchronous ? " (2/2)" : "")
+		<< " took "
+		<< formatTime(elapsed)
+		<< "."
+		<< std::endl;
+	if (synchronous) {
+		std::cout << ss.str();
+	}
+	if (!success) {
+		std::exit(EXIT_FAILURE);
+	}
+	return elapsed;
+}
+std::string Info::formatTime(const std::size_t elapsed) {
+	std::stringstream ss;
+	ss << ::Color::GREEN << elapsed << " ms" << ::Color::RESET;
+	return ss.str();
+}
 std::string Info::str() {
 	const std::string headingMarker = repeat("*", 3);
 	const std::string headingMarkerPadding = " ";
