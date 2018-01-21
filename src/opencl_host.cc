@@ -18,7 +18,7 @@ OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 GPU_FOUND:
 
 	std::string deviceName = device.getInfo<CL_DEVICE_NAME>();
-	std::cout << Color::RED << "Using Device \"" << deviceName << "\"." << Color::RESET << std::endl;
+	std::cout << Color::RED << "Using Device \"" << deviceName << "\"." << Color::RESET << std::endl << std::endl;
 	context = cl::Context(std::vector<cl::Device>{ device });
 	cl::Program::Sources sources;
 	std::cout << Color::BLUE << "<- " << Color::RED << "OpenCL log section" << Color::BLUE << " ->" << std::endl;

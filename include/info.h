@@ -15,7 +15,7 @@
 #define periodColor Color::BLUE
 class Info {
 	public:
-		Info(std::size_t _maxValueSize, std::size_t _extraSpace, std::size_t _spaceWidth) : maxValueSize(_maxValueSize), extraSpace(_extraSpace), spaceWidth(_spaceWidth) {
+		Info(std::size_t maxValueSize, std::size_t extraSpace, std::size_t spaceWidth) : maxValueSize(maxValueSize), extraSpace(extraSpace), spaceWidth(spaceWidth) {
 		}
 		Info() : maxValueSize(100), extraSpace(10), spaceWidth(5) {
 		}
@@ -23,10 +23,10 @@ class Info {
 			title = newTitle;
 		}
 		template <class T>
-		void add(const std::string name, const T &val) {
-			attributes.push_back(std::make_pair(name, Info::toStr(val)));
+		void add(const std::string &name, const T &val) {
+			attributes.push_back(std::make_pair(name, Info::toString(val)));
 		}
-		void add(Info child) {
+		void add(Info &child) {
 			children.push_back(child);
 		}
 		std::string str();
@@ -35,7 +35,7 @@ class Info {
 		template <class T>
 		static std::string vec2str(const std::vector<T> &v) {
 			std::stringstream ss;
-			for (size_t i = 0; i < v.size(); ++i) {
+			for (auto i = 0u; i < v.size(); ++i) {
 				if (i != 0) {
 					ss << ", ";
 				}
@@ -53,17 +53,25 @@ class Info {
 		// Trim from both ends
 		static std::string &trim(std::string &s);
 		template <class T>
-		static std::string toStr(T &val) {
+		static std::string toString(const T &val) {
 			std::stringstream ss;
 			ss << val;
 			return ss.str();
 		}
 	private:
-		std::size_t maxValueSize;
-		std::size_t extraSpace;
-		std::size_t spaceWidth;
+		const std::size_t maxValueSize;
+		const std::size_t extraSpace;
+		const std::size_t spaceWidth;
 		std::string title;
-		std::vector<std::pair <std::string, std::string> > attributes;
+		std::vector<std::pair<std::string, std::string>> attributes;
 		std::vector<Info> children;
-		std::string getTitleLine(std::size_t extra);
+		std::string getTitleLine(std::size_t extra) const;
+		static std::string repeat(const std::string &word, std::size_t times) {
+			std::string result;
+			result.reserve(word.length() * times);
+			for (std::size_t i = 0u ; i < times ; ++i) {
+				result += word;
+			}
+			return result;
+		}
 };
