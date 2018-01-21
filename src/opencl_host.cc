@@ -5,10 +5,10 @@ OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 	cl::Platform::get(&platforms);
 	cl::Device device;
 	bool device_available = false;
-	for (std::size_t i = 0; i < platforms.size(); ++i) {
+	for (auto i = 0u; i < platforms.size(); ++i) {
 		std::vector<cl::Device> devices;
 		platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices);
-		for (std::size_t j = 0; j < devices.size(); ++j) {
+		for (auto j = 0u; j < devices.size(); ++j) {
 			device = devices[j];
 			device_available = true;
 			if (device.getInfo<CL_DEVICE_AVAILABLE>() && device.getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU)
@@ -31,7 +31,7 @@ DEVICE_FOUND:
 	std::vector<char> kernel_src(input.tellg());
 	input.seekg(0, std::ios_base::beg);
 	input.read(kernel_src.data(), kernel_src.size());
-	sources.push_back(std::pair<const char *, size_t>(kernel_src.data(), kernel_src.size()));
+	sources.push_back(std::pair<const char *, std::size_t>(kernel_src.data(), kernel_src.size()));
 
 	// kernel parameters
 	CompilerOptions co;
@@ -64,7 +64,7 @@ void OpenCLHost::printInfo() {
 	cl::Platform::get(&allPlatforms);
 	Info info;
 	info.setTitle("Hardware information");
-	for (std::size_t i = 0; i < allPlatforms.size(); ++i) {
+	for (auto i = 0u; i < allPlatforms.size(); ++i) {
 		cl::Platform platform = allPlatforms[i];
 		Info platformInfo;
 		std::stringstream platformTitle;
@@ -77,7 +77,7 @@ void OpenCLHost::printInfo() {
 		platformInfo.add("Extensions", platform.getInfo<CL_PLATFORM_EXTENSIONS>());
 		std::vector<cl::Device> platformDevices;
 		platform.getDevices(CL_DEVICE_TYPE_ALL, &platformDevices);
-		for (std::size_t j = 0; j < platformDevices.size(); ++j) {
+		for (auto j = 0u; j < platformDevices.size(); ++j) {
 			cl::Device device = platformDevices[j];
 			Info deviceInfo;
 			std::stringstream deviceTitle;
@@ -103,7 +103,7 @@ void OpenCLHost::printInfo() {
 	std::cout << info.str();
 }
 void OpenCLHost::upload(const std::vector<uint32_t> &faces, const std::vector<uint32_t> &nodes, const std::vector<Vec3f> &aabbs, const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &vnormals) {
-	std::size_t mem = 0;
+	auto mem = 0u;
 	facesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem += faces.size() * sizeof(uint32_t));
 	nodesBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem +=nodes.size() * sizeof(uint32_t));
 	aabbsBuffer = cl::Buffer(context, CL_MEM_READ_ONLY, mem +=aabbs.size() * sizeof(Vec3f));

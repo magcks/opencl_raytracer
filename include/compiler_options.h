@@ -30,10 +30,9 @@ class CompilerOptions {
 		}
 		std::string str() {
 			std::stringstream ss;
-			for (std::size_t i = 0; i < store.size(); ++i) {
+			for (auto i = 0u; i < store.size(); ++i) {
 				if (i != 0)
 					ss << " ";
-
 				ss << "-D " << store[i];
 			}
 			return ss.str();

@@ -22,21 +22,21 @@ void load_off_mesh(const std::string &filename, Mesh *mesh) {
 		throw std::runtime_error("File not recognized as OFF model");
 	}
 	/* Clear the model data and init some values. */
-	std::size_t num_vertices = 0;
-	std::size_t num_faces = 0;
-	std::size_t num_edges = 0;
+	auto num_vertices = 0u;
+	auto num_faces = 0u;
+	auto num_edges = 0u;
 	/* Read vertex, face and edge information. */
 	input >> num_vertices >> num_faces >> num_edges;
 	mesh->vertices.reserve(num_vertices);
 	mesh->faces.reserve(num_faces * 3 + 3);
 	/* Read vertices. */
-	for (std::size_t i = 0; i < num_vertices; ++i) {
+	for (auto i = 0u; i < num_vertices; ++i) {
 		float x, y, z;
 		input >> x >> y >> z;
 		mesh->vertices.push_back(Vec3f(x, y, z));
 	}
 	/* Read faces. */
-	for (std::size_t i = 0; i < num_faces; ++i) {
+	for (auto i = 0u; i < num_faces; ++i) {
 		std::size_t n_vertices;
 		input >> n_vertices;
 		if (n_vertices == 3) {
@@ -82,11 +82,11 @@ void save_off_mesh(const Mesh &mesh, const std::string &filename) {
 	/* Write at least 7 digits for float values. */
 	out << std::fixed << std::setprecision(7);
 	/* Write vertices. */
-	for (std::size_t i = 0; i < num_verts; i += 3) {
+	for (auto i = 0u; i < num_verts; i += 3) {
 		out << mesh.vertices[i + 0] << "\n" << mesh.vertices[i + 1] << "\n" << mesh.vertices[i + 2] << std::endl;
 	}
 	/* Write faces. */
-	for (std::size_t i = 0; i < num_faces * 3; i += 3) {
+	for (auto i = 0u; i < num_faces * 3; i += 3) {
 		out << "3 " << mesh.faces[i + 0] << " " << mesh.faces[i + 1] << " " << mesh.faces[i + 2] << std::endl;
 	}
 	/* Close file stream. */
@@ -95,8 +95,8 @@ void save_off_mesh(const Mesh &mesh, const std::string &filename) {
 void compute_vertex_normals(Mesh *mesh) {
 	mesh->vnormals.clear();
 	mesh->vnormals.resize(mesh->vertices.size(), Vec3f(0, 0, 0));
-	std::size_t num_zero_face_normals = 0;
-	for (std::size_t i = 0; i < mesh->faces.size(); i += 3) {
+	auto num_zero_face_normals = 0u;
+	for (auto i = 0u; i < mesh->faces.size(); i += 3) {
 		/* Face vertex indices. */
 		std::size_t ia = mesh->faces[i + 0];
 		std::size_t ib = mesh->faces[i + 1];
@@ -119,14 +119,14 @@ void compute_vertex_normals(Mesh *mesh) {
 		}
 	}
 	/* Normalize vertex normals. */
-	std::size_t num_zero_vertex_normals = 0;
-	for (std::size_t i = 0; i < mesh->vnormals.size(); ++i) {
+	auto num_zero_vertex_normals = 0u;
+	for (auto i = 0u; i < mesh->vnormals.size(); ++i) {
 		float length = mesh->vnormals[i].length();
 		if (length > 0) {
 			mesh->vnormals[i] /= length;
 		}
 		else {
-			num_zero_vertex_normals += 1;
+			++num_zero_vertex_normals;
 		}
 	}
 	if (num_zero_face_normals > 0 || num_zero_vertex_normals > 0) {

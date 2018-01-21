@@ -69,7 +69,7 @@ class Info {
 		static std::string repeat(const std::string &word, std::size_t times) {
 			std::string result;
 			result.reserve(word.length() * times);
-			for (std::size_t i = 0u ; i < times ; ++i) {
+			for (auto i = 0u ; i < times ; ++i) {
 				result += word;
 			}
 			return result;

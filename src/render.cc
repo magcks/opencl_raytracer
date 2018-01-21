@@ -1,20 +1,15 @@
 #include <fstream>
-#include <vector>
-#include <limits>
 #include <iostream>
-#include <iterator>
 #include <string>
 #include <stdlib.h>
-#include "timer.h"
-#include "mesh.h"
-#include "vec3.h"
-#include "bvh.h"
-#include "triangle.h"
-#include "ray_tracer.h"
-#include "info.h"
-#include "color.h"
-#include "opencl_host.h"
+#include <vector>
 #include "args.h"
+#include "bvh.h"
+#include "color.h"
+#include "mesh.h"
+#include "opencl_host.h"
+#include "ray_tracer.h"
+#include "timer.h"
 #define _USE_MATH_DEFINES
 
 struct Options : RayTracer::Options {
@@ -61,15 +56,15 @@ int main(int argc, const char **argv) {
 	std::cout << Color::BLUE << "- " << Color::YELLOW << "Vertices: " << Color::RED << mesh.vertices.size() << Color::YELLOW << std::endl;
 	std::cout << Color::BLUE << "- " << Color::YELLOW << "Triangles: " << Color::RED << (mesh.faces.size() / 3) << Color::RESET << std::endl;
 	RayTracer rt(options);
-	if (options.aoMethod == RayTracer::AmbientOcclusionMethod::UNIFORM) {
-		std::size_t rays = 0;
+	if (options.enableAO && options.aoMethod == RayTracer::AmbientOcclusionMethod::UNIFORM) {
+		auto rays = 0u;
 		const float degrees = M_PI / 180;
-		for (uint currentCircle = 0; currentCircle < options.aoNumSamples; ++currentCircle) {
+		for (auto currentCircle = 0u; currentCircle < options.aoNumSamples; ++currentCircle) {
 			// the angle of each step
 			const float stepAngleRad = (options.aoAlphaMax * degrees) / options.aoNumSamples;
 			// the "horizontal" angle
 			const float angleRad = (stepAngleRad * currentCircle) + (options.aoAlphaMin * degrees);
-			rays += (std::size_t) ((2.0f * M_PI * cos(angleRad)) / stepAngleRad);
+			rays += static_cast<decltype(rays)>(2.0f * M_PI * cos(angleRad) / stepAngleRad);
 		}
 		std::cout << Color::RED << "IMPORTANT INFO: You've enabled 'Uniform AO hemispheres'. You have entered a circle count of " << options.aoNumSamples << ". This will result in " << rays << " rays. Note that the Uniform AO Hemisphere will generate much better pictures without noise with less rays and time than you would need using randomized hemispheres." << Color::RESET << std::endl;
 	}
@@ -85,7 +80,7 @@ int main(int argc, const char **argv) {
 	std::cout << Color::BLUE << "<- " << Color::RED << "Device section" << Color::BLUE << " ->" << std::endl;
 	OpenCLHost::printInfo();
 	std::cout << Color::YELLOW << "Loading OpenCL kernel…\n" << Color::RESET;
-	std::size_t totalTime = 0;
+	auto totalTime = 0u;
 	OpenCLHost host(rt);
 	// Build the kernel
 	{
@@ -93,7 +88,7 @@ int main(int argc, const char **argv) {
 		// Sort faces along triangle order
 		std::vector<uint32_t> sortedFaces;
 		sortedFaces.reserve(mesh.faces.size());
-		for (size_t i = 0; i < bvh.triangles.size(); ++i) {
+		for (std::size_t i = 0; i < bvh.triangles.size(); ++i) {
 			const uint32_t faceID = bvh.triangles[i] * 3;
 			sortedFaces.push_back(mesh.faces[faceID]);
 			sortedFaces.push_back(mesh.faces[faceID + 1]);

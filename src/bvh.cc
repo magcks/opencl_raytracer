@@ -10,7 +10,7 @@
 * Generates the bounding box and the bounding box of the centroids of the triangles.
 */
 inline void getBBAndBBCentroid(const Mesh &mesh, std::vector<unsigned int> &faceIDs, AABB &bb, AABB &bbCentroid) {
-	for (size_t i = 0; i < faceIDs.size(); ++i) {
+	for (auto i = 0u; i < faceIDs.size(); ++i) {
 		/* Get the triangle from the mesh */
 		Triangle tri(&mesh, faceIDs[i]);
 		/* Get the triangle's centroid and add it */
@@ -25,7 +25,7 @@ inline void getBBAndBBCentroid(const Mesh &mesh, std::vector<unsigned int> &face
 * Generates the bounding box.
 */
 inline void getBB(const Mesh &mesh, std::vector<unsigned int> &faceIDs, AABB &bb) {
-	for (size_t i = 0; i < faceIDs.size(); ++i) {
+	for (auto i = 0u; i < faceIDs.size(); ++i) {
 		/* Get the triangle from the mesh */
 		Triangle tri(&mesh, faceIDs[i]);
 		/* Merge the AABBs so the tree rebuilds */
@@ -70,7 +70,7 @@ void BVH::cutFacesLongestAxis(const Mesh &mesh, std::vector<unsigned int> &faceI
 	bbCentroid.max[longestAxis] = (bbCentroid.max[longestAxis] + bbCentroid.min[longestAxis]) / 2;
 	/* Set the centroid BV's new maximum extent */
 	/* Since we need to split up the IDs into two lists, we'll just go ahead and create those here.*/
-	for (size_t i = 0; i < faceIDs.size(); ++i) {
+	for (auto i = 0u; i < faceIDs.size(); ++i) {
 		/* Get the triangle from the mesh */
 		Triangle tri(&mesh, faceIDs[i]);
 		/* Get the current centroid */
@@ -101,7 +101,7 @@ void BVH::buildBVH(const Mesh &mesh) {
 	std::vector<uint32_t> faceIDs(size);
 // 	std::cout << "LIMIT: " << faceIDs.max_size() << std::endl;
 // 	std::cout << "CAPA: " << faceIDs.capacity() << std::endl;
-	for (std::size_t i = 0; i < size; ++i) {
+	for (auto i = 0u; i < size; ++i) {
 // 		std::cout << i << std::endl;
 		faceIDs[i] = i;
 	}
@@ -130,27 +130,20 @@ void BVH::buildBVH(const Mesh &mesh) {
 /*
 * Builds an node of the BVH and returns the count of nodes (incl. the current node)
 */
-unsigned int BVH::build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::size_t &ind) {
-// 	size_t i = nodes.size();
-// 	Node n;
-// 	nodes.push_back(n);
-//
-// 	std::cout << ind << std::endl;
-// 	uint32_t n;
-// 	nodes.at(ind) = n;
-	uint32_t & node = nodes.at(ind);
+unsigned int BVH::build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::size_t &i) {
+	uint32_t & node = nodes.at(i);
 	AABB bb;
 	if (faceIDs.size() <= /*MAX_LEAF_TRIANGLES*/1) {
 // 		node.triangles_offset = triangles.size() * 3;
 // 		node.triangles_length = faceIDs.size();
 		/* Push all of our triangles into the node. */
-		for (size_t i = 0; i < faceIDs.size(); ++i) {
-			Triangle tri(&mesh, faceIDs[i]);    /* Get the triangle from the mesh */
+		for (auto k = 0u; k < faceIDs.size(); ++k) {
+			Triangle tri(&mesh, faceIDs[k]);    /* Get the triangle from the mesh */
 			bb.merge(tri.getAABB());
 			triangles.push_back(tri.getFaceID());
 		}
-		aabbs.at(ind * 2) = bb.min;
-		aabbs.at(ind * 2 + 1) = bb.max;
+		aabbs.at(i * 2) = bb.min;
+		aabbs.at(i * 2 + 1) = bb.max;
 		node = 1;
 	}
 	else {
@@ -171,15 +164,15 @@ unsigned int BVH::build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, st
 			std::cout << "ERROR: invalid right cut" << std::endl;
 			std::exit(1);
 		}
-		aabbs.at(ind * 2) = bb.min;
-		aabbs.at(ind * 2 + 1) = bb.max;
+		aabbs.at(i * 2) = bb.min;
+		aabbs.at(i * 2 + 1) = bb.max;
 // 		node.triangles_offset = 0;
 // 		node.triangles_length = 0;
-		++ind;
-		node = build(mesh, leftIDs, ind);
+		++i;
+		node = build(mesh, leftIDs, i);
 		leftIDs.clear();
-		++ind;
-		node += build(mesh, rightIDs, ind) + 1;
+		++i;
+		node += build(mesh, rightIDs, i) + 1;
 		rightIDs.clear();
 	}
 	//std::cout << nodes.at(i).node_count << std::endl;
@@ -187,18 +180,18 @@ unsigned int BVH::build(const Mesh &mesh, std::vector<unsigned int> &faceIDs, st
 }
 class sortByAxis {
 	public:
-		sortByAxis(const Mesh *mesh, char *axis) {
+		sortByAxis(const Mesh *mesh, std::size_t *axis) {
 			this->mesh = mesh;
 			this->axis = axis;
 		}
-		bool operator()(unsigned int i, unsigned int j) {
+		bool operator()(std::size_t i, std::size_t j) {
 			Triangle tri1(mesh, i);
 			Triangle tri2(mesh, j);
 			return tri1.getCentroid()[*(axis)] > tri2.getCentroid()[*(axis)];
 		}
 	private:
 		const Mesh *mesh;
-		char *axis;
+		std::size_t *axis;
 };
 void BVH::cutFacesSAH(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std::vector<unsigned int> &leftIDs, std::vector<unsigned int> &rightIDs, AABB &bb) {
 	getBB(mesh, faceIDs, bb);
@@ -209,22 +202,24 @@ void BVH::cutFacesSAH(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std:
 	// SA of the current node
 	float SACurrent = getSurfaceArea(bb);
 	float SALeft, SARight;
-	char bestAxis = 0;
-	size_t bestPos = 1;
-	AABB _emptyBB;
+	std::size_t bestAxis = 0;
+	auto bestPos = 1u;
+	AABB emptyBB;
 	float minCosts = std::numeric_limits<float>::max();
 	float currentCosts;
-	size_t countFaceIDs = faceIDs.size();
-	for (char axis = 0; axis < 3; ++axis) {
-		std::sort(faceIDs.begin(), faceIDs.end(), sortByAxis(&mesh, &axis)); // And sort the array by the current axis
+	std::size_t countFaceIDs = faceIDs.size();
+	for (std::size_t axis = 0; axis < 3; ++axis) {
+		// And sort the array by the current axis
+		std::sort(faceIDs.begin(), faceIDs.end(), sortByAxis(&mesh, &axis));
 		AABB bbLeft = Triangle(&mesh, faceIDs[0]).getAABB(), bbRight;
 		double countLeft, countRight;
 		countLeft = 1;
 		countRight = countFaceIDs - 1;
-		for (size_t i = 1; i < countFaceIDs - 1; ++i) { // Vom 2. bis zum vorletzten, damit ein subnode nicht leer ist
+		// Iterate from the second to the next to last element, so that a subnode isn't empty
+		for (auto i = 1u; i < countFaceIDs - 1; ++i) {
 			std::cout << "\rCutting " << countFaceIDs << " face IDs into two parts... Processing (Axis: " << (int) axis << ") " << std::setw(5) << std::setfill('0') << std::left << (10000 * (i + axis * countFaceIDs) / (countFaceIDs * 3)) / 100.0f << "%..." << std::flush;
-			// Compute right bb
-			for (size_t j = i; j < countFaceIDs; ++j) {
+			// Compute right bounding box
+			for (decltype(i) j = i; j < countFaceIDs; ++j) {
 				bbRight.merge(Triangle(&mesh, faceIDs[j]).getAABB());
 			}
 			// Compute the surface area
@@ -241,7 +236,7 @@ void BVH::cutFacesSAH(const Mesh &mesh, std::vector<unsigned int> &faceIDs, std:
 			// Push to left bb
 			bbLeft.merge(Triangle(&mesh, faceIDs[i]).getAABB());
 			// Clear right bb
-			bbRight = _emptyBB;
+			bbRight = emptyBB;
 			// inc left, dec right
 			++countLeft;
 			--countRight;
