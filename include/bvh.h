@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "mesh.h"
-#include "triangle.h"
 #include "aabb.h"
 // Bounding Volume Hierarchy (BVH) Interface.
 class BVH {

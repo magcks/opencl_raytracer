@@ -1,13 +1,7 @@
 #pragma once
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <sstream>
 #include <CL/cl.hpp>
-#include "color.h"
-#include "compiler_options.h"
+#include <iostream>
 #include "ray_tracer.h"
-#include "info.h"
 #include "vec3.h"
 class OpenCLHost {
 	public:
@@ -26,7 +20,7 @@ class OpenCLHost {
 		}
 		static void check(cl_int err) {
 			if (err != CL_SUCCESS) {
-				std::cout << "OpenCL error: " << getErrorString(err) << std::endl;
+				std::cerr << "OpenCL error: " << getErrorString(err) << std::endl;
 				std::exit(EXIT_FAILURE);
 			}
 		}

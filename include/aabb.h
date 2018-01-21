@@ -1,7 +1,6 @@
 #pragma once
 #include <limits>
 #include "vec3.h"
-#include "mesh.h"
 // Axis-aligned bounding box.
 class AABB {
 	public:

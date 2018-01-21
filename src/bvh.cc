@@ -1,10 +1,9 @@
+#include <iomanip>
 #include <iostream>
 #include <limits>
-#include <stdexcept>
-#include <list>
-#include <iomanip>
-#include "bvh.h"
 #include "aabb.h"
+#include "bvh.h"
+#include "mesh.h"
 #include "triangle.h"
 /*
 * Generates the bounding box and the bounding box of the centroids of the triangles.

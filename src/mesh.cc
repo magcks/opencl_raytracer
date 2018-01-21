@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iomanip>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 #include "vec3.h"
 #include "mesh.h"
 void load_off_mesh(const std::string &filename, Mesh *mesh) {

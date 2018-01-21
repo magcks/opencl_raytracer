@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cstdlib>
 #include "triangle.h"
 Vec3f Triangle::getCentroid() const {
 	return ((*this)[0] + (*this)[1] + (*this)[2]) / 3.0f;

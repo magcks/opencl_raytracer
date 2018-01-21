@@ -1,7 +1,7 @@
 #pragma once
+#include <algorithm>
 #include <cmath>
 #include <ostream>
-#include <algorithm>
 constexpr std::size_t X = 0, Y = 1, Z = 2;
 template <typename T> class Vec3 {
 	public:

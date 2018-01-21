@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "vec3.h"
-#include <CL/cl.h>
 // Mesh data structure.
 //
 // A mesh contains a set of vertices, which are points in 3D. Triangles

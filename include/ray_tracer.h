@@ -1,7 +1,4 @@
 #pragma once
-#include <cmath>
-#include <string>
-#include <sstream>
 #include "bvh.h"
 class RayTracer {
 	public:

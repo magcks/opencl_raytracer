@@ -1,4 +1,3 @@
-#include <iostream>
 #include "aabb.h"
 void AABB::merge(const AABB &bb) {
 	for (int i = 0; i < 3; ++i) {

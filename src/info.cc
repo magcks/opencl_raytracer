@@ -1,4 +1,4 @@
-#include <iostream>
+#include <cstdlib>
 #include "info.h"
 const std::string Info::Color::LEFT = ::Color::WHITE;
 const std::string Info::Color::RIGHT = ::Color::GREEN;

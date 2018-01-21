@@ -1,7 +1,7 @@
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <stdlib.h>
 #include <vector>
 #include "args.h"
 #include "bvh.h"

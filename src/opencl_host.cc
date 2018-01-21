@@ -1,5 +1,10 @@
-#include "opencl_host.h"
+#include <fstream>
 #include <stdexcept>
+#include <sstream>
+#include "color.h"
+#include "compiler_options.h"
+#include "info.h"
+#include "opencl_host.h"
 OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 	std::vector<cl::Platform> platforms;
 	cl::Platform::get(&platforms);

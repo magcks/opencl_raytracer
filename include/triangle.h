@@ -1,7 +1,7 @@
 #pragma once
-#include "vec3.h"
 #include "aabb.h"
 #include "mesh.h"
+#include "vec3.h"
 // Representation of a triangle which contains an intersection test
 // and a few convenience functions.
 #pragma pack(push, 1)

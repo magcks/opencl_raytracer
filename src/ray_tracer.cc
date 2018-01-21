@@ -1,6 +1,7 @@
+#include <cmath>
 #include "ray_tracer.h"
 void RayTracer::resize(float *tmp, unsigned char *image) {
-	unsigned int n(sqrt(options.nSuperSamples));
+	unsigned int n(std::sqrt(options.nSuperSamples));
 	for (auto y = 0u; y < options.height; ++y) {
 		for (auto x = 0u; x < options.width; ++x) {
 			float total = 0;

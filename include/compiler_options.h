@@ -1,7 +1,7 @@
 #pragma once
-#include <vector>
 #include <sstream>
 #include <string>
+#include <vector>
 class CompilerOptions {
 	public:
 		void add(std::string name, bool v) {
