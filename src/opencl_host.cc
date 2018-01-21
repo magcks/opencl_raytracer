@@ -5,6 +5,12 @@
 #include "compiler_options.h"
 #include "info.h"
 #include "opencl_host.h"
+
+extern "C" struct {
+	const char *data;
+	unsigned int size;
+} INTERSECT_KERNEL;
+
 OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 	std::vector<cl::Platform> platforms;
 	cl::Platform::get(&platforms);
@@ -28,17 +34,9 @@ DEVICE_FOUND:
 	context = cl::Context(std::vector<cl::Device>{ device });
 	cl::Program::Sources sources;
 	std::cout << Color::BLUE << "<- " << Color::GREEN << "OpenCL log section" << Color::BLUE << " ->" << std::endl;
-	std::cout << Color::WHITE << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
-
-	// load kernel source
-	std::ifstream input(INTERSECT_KERNEL_CL, std::ios_base::binary);
-	input.seekg(0, std::ios_base::end);
-	std::vector<char> kernel_src(input.tellg());
-	input.seekg(0, std::ios_base::beg);
-	input.read(kernel_src.data(), kernel_src.size());
-	sources.push_back(std::pair<const char *, std::size_t>(kernel_src.data(), kernel_src.size()));
 
 	// kernel parameters
+	sources.push_back(std::pair<const char *, std::size_t>(INTERSECT_KERNEL.data, INTERSECT_KERNEL.size));
 	CompilerOptions co;
 	co.add("WIDTH", rt.totalWidth);
 	co.add("HEIGHT", rt.totalHeight);
