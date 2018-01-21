@@ -86,24 +86,24 @@ int main(int argc, const char **argv) {
 	std::cout << std::endl << Color::BLUE << "<- " << COLOR_SECTION << "Device section" << Color::BLUE << " ->" << std::endl;
 	OpenCLHost::printInfo();
 	std::cout << COLOR_NORMAL << "Loading OpenCL kernel…" << Color::RESET << std::endl;
-	auto totalTime = 0u;
+	auto total_time = 0u;
 	OpenCLHost host(rt);
 	// Build the kernel
 	{
 		Timer timer;
 		// Sort faces along triangle order
-		std::vector<uint32_t> sortedFaces;
-		sortedFaces.reserve(mesh.faces.size());
+		std::vector<uint32_t> sorted_faces;
+		sorted_faces.reserve(mesh.faces.size());
 		for (std::size_t i = 0; i < bvh.triangles.size(); ++i) {
 			const uint32_t faceID = bvh.triangles[i] * 3;
-			sortedFaces.push_back(mesh.faces[faceID]);
-			sortedFaces.push_back(mesh.faces[faceID + 1]);
-			sortedFaces.push_back(mesh.faces[faceID + 2]);
+			sorted_faces.push_back(mesh.faces[faceID]);
+			sorted_faces.push_back(mesh.faces[faceID + 1]);
+			sorted_faces.push_back(mesh.faces[faceID + 2]);
 		}
 		mesh.faces.clear();
 		bvh.triangles.clear();
-		host.upload(sortedFaces, bvh.nodes, bvh.aabbs, mesh.vertices, mesh.vnormals);
-		sortedFaces.clear();
+		host.upload(sorted_faces, bvh.nodes, bvh.aabbs, mesh.vertices, mesh.vnormals);
+		sorted_faces.clear();
 		bvh.nodes.clear();
 		bvh.aabbs.clear();
 		mesh.vertices.clear();
@@ -122,7 +122,7 @@ int main(int argc, const char **argv) {
 			std::cout << COLOR_WARNING << " failed!" << Color::RESET;
 		}
 		std::size_t elapsed = timer.get_elapsed();
-		totalTime += elapsed;
+		total_time += elapsed;
 		std::cout << " took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
 	std::vector<float> tmp(rt.totalWidth * rt.totalHeight);
@@ -136,24 +136,24 @@ int main(int argc, const char **argv) {
 		std::cout << " took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
 	// Resize
-	std::vector<unsigned char> image(options.width * options.height);
+	std::vector<std::uint8_t> image(options.width * options.height);
 	{
 		Timer timer;
 		std::cout << COLOR_NORMAL << "Resizing image on host…" << Color::RESET;
 		rt.resize(tmp.data(), image.data());
 		std::size_t elapsed = timer.get_elapsed();
-		totalTime += elapsed;
+		total_time += elapsed;
 		std::cout << " took " << Color::GREEN << elapsed << "ms." << Color::RESET << std::endl;
 	}
-	std::cout << COLOR_NORMAL << "Total time (without loading memory and building the BVH): " << Color::GREEN << totalTime << "ms" << Color::RESET << std::endl;
+	std::cout << COLOR_NORMAL << "Total time (without loading memory and building the BVH): " << Color::GREEN << total_time << "ms" << Color::RESET << std::endl;
 	// Write output image.
-	std::ofstream out(options.out.c_str());
+	std::ofstream out(options.out);
 	if (!out.good()) {
 		std::cerr << COLOR_WARNING << "Error opening output file!" << Color::RESET << std::endl;
-		return 1;
+		std::exit(EXIT_FAILURE);
 	}
 	out << "P5 " << options.width << " " << options.height << " 255\n";
-	out.write((const char*)image.data(), options.width * options.height);
+	std::copy(image.begin(), image.end(), std::ostream_iterator<decltype(image)::value_type>(out));
 	out.close();
 	return 0;
 }
