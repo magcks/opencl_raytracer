@@ -4,19 +4,20 @@ OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 	std::vector<cl::Platform> platforms;
 	cl::Platform::get(&platforms);
 	cl::Device device;
-	bool have_dev = false;
+	bool device_available = false;
 	for (std::size_t i = 0; i < platforms.size(); ++i) {
 		std::vector<cl::Device> devices;
 		platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices);
 		for (std::size_t j = 0; j < devices.size(); ++j) {
 			device = devices[j];
-			have_dev = true;
-			if (device.getInfo<CL_DEVICE_AVAILABLE>() && device.getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU) goto GPU_FOUND;
+			device_available = true;
+			if (device.getInfo<CL_DEVICE_AVAILABLE>() && device.getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU)
+				goto DEVICE_FOUND;
 		}
 	}
-	if (!have_dev) throw std::runtime_error("No device found");
-GPU_FOUND:
-
+	if (!device_available)
+		throw std::runtime_error("No device found");
+DEVICE_FOUND:
 	std::string deviceName = device.getInfo<CL_DEVICE_NAME>();
 	std::cout << Color::RED << "Using Device \"" << deviceName << "\"." << Color::RESET << std::endl << std::endl;
 	context = cl::Context(std::vector<cl::Device>{ device });
