@@ -19,11 +19,11 @@ OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 		throw std::runtime_error("No device found");
 DEVICE_FOUND:
 	std::string deviceName = device.getInfo<CL_DEVICE_NAME>();
-	std::cout << Color::RED << "Using Device \"" << deviceName << "\"." << Color::RESET << std::endl << std::endl;
+	std::cout << Color::WHITE << "Using Device \"" << deviceName << "\"." << Color::RESET << std::endl << std::endl;
 	context = cl::Context(std::vector<cl::Device>{ device });
 	cl::Program::Sources sources;
-	std::cout << Color::BLUE << "<- " << Color::RED << "OpenCL log section" << Color::BLUE << " ->" << std::endl;
-	std::cout << Color::YELLOW << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
+	std::cout << Color::BLUE << "<- " << Color::GREEN << "OpenCL log section" << Color::BLUE << " ->" << std::endl;
+	std::cout << Color::WHITE << "Loading kernel source file " << INTERSECT_KERNEL_CL << "…" << std::endl;
 
 	// load kernel source
 	std::ifstream input(INTERSECT_KERNEL_CL, std::ios_base::binary);
