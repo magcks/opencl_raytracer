@@ -63,7 +63,7 @@ void BVH::cutFacesLongestAxis(const Mesh &mesh, std::vector<unsigned int> &faceI
 	getBBAndBBCentroid(mesh, faceIDs, bb, bbCentroid);
 	/* Now we need to take care of the longest axis and its bisection. */
 	/* Get the longest axis */
-	char longestAxis = bbCentroid.getLongestAxis();
+	int longestAxis = bbCentroid.getLongestAxis();
 	//maxEntentPoint[longestAxis] = maxEntentPoint[longestAxis] - (maxEntentPoint[longestAxis] - bbCentroid.getAABBMin()[longestAxis]) / 2;
 	// this is the same:
 	bbCentroid.max[longestAxis] = (bbCentroid.max[longestAxis] + bbCentroid.min[longestAxis]) / 2;
@@ -98,33 +98,16 @@ void BVH::cutFacesLongestAxis(const Mesh &mesh, std::vector<unsigned int> &faceI
 void BVH::buildBVH(const Mesh &mesh) {
 	std::size_t size = mesh.faces.size() / 3;
 	std::vector<uint32_t> faceIDs(size);
-// 	std::cout << "LIMIT: " << faceIDs.max_size() << std::endl;
-// 	std::cout << "CAPA: " << faceIDs.capacity() << std::endl;
 	for (auto i = 0u; i < size; ++i) {
-// 		std::cout << i << std::endl;
 		faceIDs[i] = i;
 	}
-// 	std::cout << "ACTUAL SIZE: " << faceIDs.size() << std::endl;
 	triangles.reserve(size);
-// 	std::cout << "LIMIT: " << triangles.max_size() << std::endl;
-// 	triangles.reserve(size);
 	nodes = std::vector<uint32_t>(size * 2 - 1);
 	aabbs = std::vector<Vec3f>((size * 2 - 1) * 2);
-// 	std::cout << "LIMIT: " << nodes.max_size() << " WANNA HAVE: " << size * 2 - 1 << " N: " << size << std::endl;
-// 	nodes.reserve(size * 2 - 1);
-// 	std::cout << "YEAH!" << std::endl;
 	std::size_t i = 0;
-// 	std::cout << std::endl; // because of the flush
 	build(mesh, faceIDs, i);
-// 	std::cout << std::endl; // because of the flush
 	nodes.resize(nodes[0]);
 	aabbs.resize(nodes[0] * 2);
-// 	printf("\n");
-// 	printf("NODE: %d AABB: %d\n", sizeof(Node), sizeof(AABB));
-// 	printf("X1 %f\n", (*nodes)[1].bb.min[0]);
-// 	printf("UINT: %d\n", sizeof(uint32_t));
-// 	hexdump(&(*nodes)[0], 500);
-// 	std::cout << "SWAG!!!" << (*nodes)[0].node_count << std::endl;
 }
 /*
 * Builds an node of the BVH and returns the count of nodes (incl. the current node)

@@ -13,7 +13,7 @@ class AABB {
 		// Merge the AABB with another vector.
 		void merge(const Vec3f &vec);
 		// Returns the longest axis, 0: x-axis, 1: y-axis, 2: z-axis.
-		char getLongestAxis() const;
+		int getLongestAxis() const;
 		// Returns true iff point is inside the AABB.
 		bool inside(const Vec3f &point) const;
 		Vec3f min;

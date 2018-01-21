@@ -11,7 +11,7 @@ void AABB::merge(const Vec3f &vec) {
 		max[i] = std::max(max[i], vec[i]);
 	}
 }
-char AABB::getLongestAxis() const {
+int AABB::getLongestAxis() const {
 	Vec3f diff = max - min;
 	if (diff[0] >= diff[1] && diff[0] >= diff[2]) {
 		return 0;

@@ -1,4 +1,3 @@
-#include <fstream>
 #include <stdexcept>
 #include <sstream>
 #include "color.h"

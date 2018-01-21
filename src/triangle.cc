@@ -21,10 +21,6 @@ Vec3f Triangle::getAABBMax() const {
 AABB Triangle::getAABB() const {
 	return AABB(getAABBMin(), getAABBMax());
 }
-Vec3f Triangle::getNormalVector() const {
-	Vec3f n = ((*this)[1] - (*this)[0]).cross((*this)[2] - (*this)[0]);
-	return n / n.length();
-}
 uint32_t Triangle::getFaceID() const {
 	return faceID;
 }

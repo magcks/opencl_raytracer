@@ -66,7 +66,7 @@ std::string Info::str() {
 		nameSs << Color::LEFT << attributes[i].first << ::Color::RESET;
 		std::string name = nameSs.str();
 		std::string val = attributes[i].second;
-		name.resize(resize + Color::LEFT.size() + ::Color::RESET.size(), '.');
+		name.resize(resize + sizeof Color::LEFT + sizeof ::Color::RESET, '.');
 		if (maxValueSize > 0 && val.size() > maxValueSize) {
 			val = val.substr(0, maxValueSize - 1) + "…";
 		}

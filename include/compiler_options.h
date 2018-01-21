@@ -1,42 +1,30 @@
 #pragma once
 #include <sstream>
 #include <string>
-#include <vector>
-class CompilerOptions {
-	public:
-		void add(std::string name, bool v) {
+#include <cmath>
+static const char *DEF = "-D";
+static char ENDDEF = ' ';
+struct CompilerOptions {
+		inline void add(const char *name, bool v) {
 			if (!v)
 				return;
-			store.push_back(name);
+			ss << DEF << name << ENDDEF;
 		}
-		void add(std::string name, float v) {
-			int rounded = v;
-			std::stringstream ssRounded;
-			ssRounded << rounded;
-			std::stringstream ssV;
-			ssV << v;
-			std::stringstream ss;
-			ss << name << "=" << v;
-			if (ssRounded.str() == ssV.str())
-				ss << ".0";
-			ss << "f";
-			store.push_back(ss.str());
+		inline void add(const char *name, float v) {
+			ss << DEF << name << '=' << v;
+			if (v == std::floor(v)) {
+				ss << '.';
+			}
+			ss << 'f' << ENDDEF;
 		}
 		template <typename T>
-		void add(std::string name, T v) {
-			std::stringstream ss;
-			ss << name << "=" << v;
-			store.push_back(ss.str());
+		void add(const char *name, T v) {
+			
+			ss << DEF << name << '=' << v << ENDDEF;
 		}
-		std::string str() {
-			std::stringstream ss;
-			for (auto i = 0u; i < store.size(); ++i) {
-				if (i != 0)
-					ss << " ";
-				ss << "-D " << store[i];
-			}
+		inline std::string str() {
 			return ss.str();
 		}
 	private:
-		std::vector<std::string> store;
+		std::stringstream ss;
 };

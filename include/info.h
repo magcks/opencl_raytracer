@@ -6,20 +6,20 @@
 #include "color.h"
 class Info {
 	public:
-		Info(std::size_t maxValueSize, std::size_t extraSpace) : maxValueSize(maxValueSize), extraSpace(extraSpace) {
+		inline Info(std::size_t maxValueSize, std::size_t extraSpace) : maxValueSize(maxValueSize), extraSpace(extraSpace) {
 		}
-		Info() : maxValueSize(100), extraSpace(3) {
+		inline Info() : maxValueSize(100), extraSpace(3) {
 		}
 		static std::size_t measure(const std::string &jobDescription, const std::function<bool ()> &job, bool synchronous = false);
 		static std::string formatTime(const std::size_t elapsed);
-		void setTitle(const std::string &newTitle) {
+		inline void setTitle(const std::string &newTitle) {
 			title = newTitle;
 		}
 		template <class T>
 		void add(const std::string &name, const T &val) {
 			attributes.push_back(std::make_pair(name, Info::toString(val)));
 		}
-		void add(Info &child) {
+		inline void add(Info &child) {
 			children.push_back(child);
 		}
 		std::string str();
