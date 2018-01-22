@@ -9,7 +9,7 @@ struct Resource {
 	const char *data;
 	unsigned int size;
 };
-extern "C" Resource INTERSECT_KERNEL();
+extern "C" Resource INTERSECT_KERNEL(void);
 
 OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 	std::vector<cl::Platform> platforms;
