@@ -21,24 +21,39 @@
 #   add_executable(Foo main.cc ${EMBED_mysource_OUTPUTS})
 #  ====================================================================
 
+
 cmake_minimum_required(VERSION 3.0)
-enable_language(ASM)
+
+set(RESID 256)
+set(STRUCT "struct Res { const char *data\; unsigned int size\; }\;")
 
 macro(EMBED_TARGET Name Input)
 	get_filename_component(InputAbs "${Input}" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}")
-	set(PTR "quad")
-	if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-		set(PTR "long")
-	endif()
-	set(ASM ".section .rodata\n.align ${CMAKE_SIZEOF_VOID_P}\ndata: .incbin \"${InputAbs}\"\n.globl ${Name}\n${Name}:\n.${PTR} data\n.long ${Name} - data")
-	set(Output "${CMAKE_CURRENT_BINARY_DIR}/${Name}.S")
-	file(WRITE ${Output} ${ASM})
+	if(WIN32)
+		set(OutputRC "${CMAKE_CURRENT_BINARY_DIR}/${Name}.rc")
+		set(OutputC "${CMAKE_CURRENT_BINARY_DIR}/${Name}.c")
+		set(Output ${OutputRC} ${OutputC})
+		set(RCCODE "#define ${Name} ${RESID}\n${Name} RCDATA \"${InputAbs}\"\n")
+		set(CODE "#include \"windows.h\"\n${STRUCT} struct Res ${Name}() { HMODULE handle = GetModuleHandle(NULL)\; HRSRC res = FindResource(handle, MAKEINTRESOURCE(${RESID}), RT_RCDATA)\; struct Res r = { (const char*)LockResource(LoadResource(handle, res)), SizeofResource(handle, res) }\; return r\; }\n")
+		file(WRITE ${OutputRC} ${RCCODE})
+		file(WRITE ${OutputC} ${CODE})
+		math(EXPR RESID "${RESID}+1")
+	else()
+		if(APPLE)
+			set(Section ".const_data")
+		else()
+			set(Section ".section .rodata")
+		endif()
+		set(CODE "asm(\"${Section}\\n.align ${CMAKE_SIZEOF_VOID_P}\\ndata: .incbin \\\"${InputAbs}\\\"\\nenddata:\\n\")\; ${STRUCT} extern const char data[]\; extern const char enddata[]\; struct Res ${Name}() { struct Res r = { data, enddata - data }\; return r\; }\n")
+		set(Output "${CMAKE_CURRENT_BINARY_DIR}/${Name}.c")
+		file(WRITE ${Output} ${CODE})
 
-	add_custom_command(
-		OUTPUT ${Output}
-		COMMAND ${CMAKE_COMMAND} -E touch ${Output}
-		DEPENDS ${Input}
-	)
+		add_custom_command(
+			OUTPUT ${Output}
+			COMMAND ${CMAKE_COMMAND} -E touch ${Output}
+			DEPENDS ${Input}
+		)
+	endif()
 	set(EMBED_${Name}_DEFINED TRUE)
 	set(EMBED_${Name}_INPUT ${Input})
 	set(EMBED_${Name}_OUTPUT ${Output})

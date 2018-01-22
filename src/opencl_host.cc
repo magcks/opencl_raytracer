@@ -5,10 +5,11 @@
 #include "info.h"
 #include "opencl_host.h"
 
-extern "C" struct {
+struct Resource {
 	const char *data;
 	unsigned int size;
-} INTERSECT_KERNEL;
+};
+extern "C" Resource INTERSECT_KERNEL();
 
 OpenCLHost::OpenCLHost(const RayTracer &rt) : rt(rt) {
 	std::vector<cl::Platform> platforms;
@@ -35,7 +36,8 @@ DEVICE_FOUND:
 	std::cout << Color::BLUE << "<- " << Color::GREEN << "OpenCL log section" << Color::BLUE << " ->" << std::endl;
 
 	// kernel parameters
-	sources.push_back(std::pair<const char *, std::size_t>(INTERSECT_KERNEL.data, INTERSECT_KERNEL.size));
+	Resource kernel = INTERSECT_KERNEL();
+	sources.push_back(std::pair<const char *, std::size_t>(kernel.data, kernel.size));
 	CompilerOptions co;
 	co.add("WIDTH", rt.totalWidth);
 	co.add("HEIGHT", rt.totalHeight);
