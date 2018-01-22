@@ -53,7 +53,7 @@ add_executable(render
 	src/render.cc
 	src/timer.cc
 	src/triangle.cc
-	${EMBED_INTERSECT_KERNEL_OUTPUT}
+	${EMBED_INTERSECT_KERNEL_OUTPUTS}
 )
 if(OpenCL_FOUND)
 	target_link_libraries(render ${OpenCL_LIBRARIES})
