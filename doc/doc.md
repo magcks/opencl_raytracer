@@ -1,9 +1,9 @@
 # Why is our renderer so fast?
 ## About our parallelism
-Our implementation is heavily based on OpenCL to ensure that as much computation power as physically possible can be used in parallel to render a scene. As for the realization of _Super Sampling_ (SS), we chose to supersample invidual pixels intead of individual rows or columns, as the corresponding code can be executed by the very same OpenCL kernel that also interects triangles and Bounding Volume Hierarchies for each pixel (see _Embarrassingly Parallel_).
+Our implementation is heavily based on OpenCL to ensure that as much computation power as physically possible can be used in parallel to render a scene. As for the realization of _Super Sampling_ (SS), we chose to supersample invidual pixels intead of individual rows or columns, as the corresponding code can be executed by the very same OpenCL kernel that also interects triangles and _Bounding Volume Hierarchies_ for each pixel (see _Embarrassingly Parallel_).
 
 ## Surface Area Heuristic
-Since the Median Cut method was painfully slow and the Cut Longest Axis method didn't seem to be the fastest of its kind either, we decided to implement the _Surface Area Heuristic_ (SAH) method referenced in an earlier lab. You can switch between these two methods by rewriting the corresponding line in `main.cc` to either of the following options:
+Since the _Median Cut_ method was painfully slow and the _Cut Longest Axis_ method didn't seem to be the fastest of its kind either, we decided to implement the _Surface Area Heuristic_ (SAH) method referenced in an earlier lab. You can switch between these two methods by rewriting the corresponding line in `main.cc` to either of the following options:
 
 ```
 BVH bvh(BVH::Method::CUT_LONGEST_AXIS);
