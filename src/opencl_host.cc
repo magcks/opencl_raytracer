@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <sstream>
+#include <cstddef>
 #include "color.h"
 #include "compiler_options.h"
 #include "info.h"
@@ -7,7 +8,7 @@
 
 struct Resource {
 	const char *data;
-	unsigned int size;
+	const std::size_t size;
 };
 extern "C" Resource INTERSECT_KERNEL(void);
 
